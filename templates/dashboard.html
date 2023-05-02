@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block menu %}
+<ul class="nav flex-column">
+  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+    <span>Commesse</span>
+  </h6>
+  <li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="{{ url_for("dashboard") }}">
+      Attive
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("storico") }}">
+      Storico
+    </a>
+  </li>
+  {% if gestione %}
+  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+    <span>Amministrazione</span>
+  </h6>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("collaboratori") }}">
+      Collaboratori
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="">
+      Clienti
+    </a>
+  </li>
+  {% endif %}
+  <hr>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("account") }}">
+      Account
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("logout") }}">
+      Logout
+    </a>
+  </li>
+</ul>
+{% endblock %}
+
+{% block corpo %}
+
+<h2><strong>Commesse attive</strong></h2>
+
+<ul class="nav nav-tabs">
+  <li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="#">#0001</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="#">#0004</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="#">#000B</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link">#0017</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="#">#0019</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="#">#0035</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link">#0037</a>
+  </li>
+</ul>
+<h5 class="my-2"><strong>Tubiline - ClienteX</strong>
+<a class="btn btn-sm btn-warning" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">Dettagli</a>
+</h5>
+<div class="collapse" id="collapseExample">
+  <div class="card card-body">
+    <p><strong>Note: </strong>Campo libero per scrivere cose tipo bho il cliente è uno stronzo ma ci ha aumentato il budget quindi bene.</p>
+
+  <table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Data apertura</th>
+      <th scope="col">Monte ore contratto</th>
+      <th scope="col">Budget [€]</th>
+      <th scope="col">Guadagno [€]</th>
+      <th scope="col">Ore disponibili</th>
+      <th scope="col">Project Manager</th>
+      <th scope="col">Azioni</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">21/03/20231</th>
+      <td>200</td>
+      <td>5000</td>
+      <td>4000</td>
+      <td>180</td>
+      <td>Fabio Cini</td>
+      <td><a href="">Modifica</a></td>
+    </tr>
+  </tbody>
+</table>
+
+  </div>
+</div>
+<div class="table-responsive">
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Data inserimento</th>
+      <th scope="col">Collaboratore</th>
+      <th scope="col">Ore</th>
+      <th scope="col">Tipologia</th>
+      <th scope="col">Costo</th>
+      <th scope="col">Azioni</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">21/03/20231</th>
+      <td>Luca</td>
+      <td>4,5</td>
+      <td>piping</td>
+      <td>120</td>
+      <td><a href="">Modifica</a></td>
+    </tr>
+    <tr>
+      <th scope="row">21/03/20231</th>
+      <td>Isabella <span class="badge text-bg-info">Trasferta</span></td>
+      <td>4,5</td>
+      <td>piping</td>
+      <td>220</td>
+      <td><a href="">Modifica</a></td>
+    </tr>
+    <tr>
+      <th scope="row">21/03/20231</th>
+      <td>Luca</td>
+      <td>4,5</td>
+      <td>piping</td>
+      <td>120</td>
+      <td><a href="">Modifica</a></td>
+    </tr>
+    <tr>
+      <th scope="row">21/03/20231</th>
+      <td>Luca</td>
+      <td>4,5</td>
+      <td>piping</td>
+      <td>120</td>
+      <td><a href="">Modifica</a></td>
+    </tr>
+    <tr>
+      <th scope="row">21/03/20231</th>
+      <td>Isabella <span class="badge text-bg-info">Trasferta</span></td>
+      <td>4,5</td>
+      <td>piping</td>
+      <td>220</td>
+      <td><a href="">Modifica</a></td>
+    </tr>
+    <tr>
+      <th scope="row">21/03/20231</th>
+      <td>Luca</td>
+      <td>4,5</td>
+      <td>piping</td>
+      <td>120</td>
+      <td><a href="">Modifica</a></td>
+    </tr>
+    <tr>
+      <th scope="row">21/03/20231</th>
+      <td>Luca</td>
+      <td>4,5</td>
+      <td>piping</td>
+      <td>120</td>
+      <td><a href="">Modifica</a></td>
+    </tr>
+    <tr>
+      <th scope="row">21/03/20231</th>
+      <td>Isabella <span class="badge text-bg-info">Trasferta</span></td>
+      <td>4,5</td>
+      <td>piping</td>
+      <td>220</td>
+      <td><a href="">Modifica</a></td>
+    </tr>
+    <tr>
+      <th scope="row">21/03/20231</th>
+      <td>Luca</td>
+      <td>4,5</td>
+      <td>piping</td>
+      <td>120</td>
+      <td><a href="">Modifica</a></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+{% endblock %}

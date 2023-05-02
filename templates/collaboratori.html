@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block menu %}
+<ul class="nav flex-column">
+  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+    <span>Commesse</span>
+  </h6>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("dashboard") }}">
+      Attive
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("storico") }}">
+      Storico
+    </a>
+  </li>
+  {% if gestione %}
+  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+    <span>Amministrazione</span>
+  </h6>
+  <li class="nav-item">
+    <a class="nav-link active" aria-current="page"" href="{{ url_for("collaboratori") }}">
+      Collaboratori
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="">
+      Clienti
+    </a>
+  </li>
+  {% endif %}
+  <hr>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("account") }}">
+      Account
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("logout") }}">
+      Logout
+    </a>
+  </li>
+</ul>
+{% endblock %}
+
+{% block corpo %}
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <div class="my-4 mx-5 alert alert-warning alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+<h2><strong>Collaboratori</strong></h2>
+<!-- Button trigger modal -->
+<button type="button" class="btn" style="background-color: orange;" data-bs-toggle="modal" data-bs-target="#nuovo_collabModal">Nuovo Collaboratore</button>
+
+<div class="table-responsive">
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Username</th>
+      <th scope="col">Nome e Cognome</th>
+      <th scope="col">Ruolo</th>
+      <th scope="col">Azioni</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for i in utenti %}
+    <tr>
+      <th scope="row">{{i.username}}</th>
+      <td>{{i.anagrafica["nome"]}} {{i.anagrafica["cognome"]}}</td>
+      <td>{{i.collaboratore["ruolo"]}}</td>
+      <td><a href="">Modifica</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="nuovo_collabModal" tabindex="-1" aria-labelledby="nuovo_collabModal" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="nuovo_collabModal">Nuovo Collaboratore</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="nuovo_utente">
+          <div class="mb-3">
+            <label for="nome" class="form-label">Nome</label>
+            <input type="text" class="form-control" id="nome" name="nome">
+          </div>
+          <div class="mb-3">
+            <label for="cognome" class="form-label">Cognome</label>
+            <input type="text" class="form-control" id="cognome" name="cognome">
+          </div>
+          <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" aria-describedby="usernameHelp">
+            <div id="usernameHelp" class="form-text">Ricorda tipo Fabio Cini = FCI</div>
+          </div>
+          <div class="mb-3">
+            <label for="mail" class="form-label">Mail</label>
+            <input type="email" class="form-control" id="mail" name="mail">
+          </div>
+          <div class="mb-3">
+            <label for="passwd" class="form-label">Password</label>
+            <input type="password" class="form-control" id="passwd" name="passwd">
+          </div>
+          <label for="ruolo" class="form-label">Ruolo</label>
+          <select class="form-select mb-3" aria-label="Tipo Account" id="ruolo" name="ruolo">
+            <option selected value="collaboratore">Collaboratore</option>
+            <option value="manager">Manager</option>
+          </select>
+          <div class="mb-3">
+            <label for="costo" class="form-label">Costo orario</label>
+            <input type="text" class="form-control" id="costo" name="costo" aria-describedby="costoHelp">
+            <div id="costoHelp" class="form-text">Inserire solo il valore numerico senza simbolo di €</div>
+          </div>
+          <button type="submit" class="btn btn-primary">Crea Account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
