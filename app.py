@@ -75,6 +75,16 @@ def get_nome(tipo, tmp_id):
     mcpDB.close()
     return nome
 
+def insert_edit_lavorazione(dati):
+    mcpDB = sqlite3.connect(mcpDB_path)
+    cur = mcpDB.cursor()
+    if dati["form"] == "inserisci_lavorazione":
+        cur.execute("INSERT INTO lavorazioni (collaboratore, commessa, tipo, durata) VALUES (?,?,?,?)", [int(current_user.id), int(dati["id_commessa"]), int(dati["tipo"]), json.dumps(dati["durata"])])
+    elif dati["form"] == "modifica_lavorazione":
+        cur.execute("UPDATE lavorazioni SET tipo = ?, durata = ?WHERE id = ?", [int(dati["tipo"]), json.dumps(dati["durata"]), int(dati["id_lavorazione"])])
+    mcpDB.commit()
+    mcpDB.close()
+
 def dati_mcp(tipo):
     mcpDB = sqlite3.connect(mcpDB_path)
     cur = mcpDB.cursor()
@@ -98,7 +108,6 @@ def dati_mcp(tipo):
                 "durata": json.loads(commessa[5]),
                 "note": commessa[6]
                 }
-            print(tmp_commessa)
             dati.append(tmp_commessa)
 
     elif tipo == "commesse_complete":
@@ -117,8 +126,8 @@ def dati_mcp(tipo):
             for lavorazione in lavorazioni:
                 tmp_lavorazione = {
                     "id": lavorazione[0],
-                    "collaboratore": get_nome("collaboratore", lavorazione[1]),
-                    "tipo": get_nome("tipo_lavorazione", lavorazione[3]),
+                    "collaboratore": {"id": lavorazione[1],"nome": get_nome("collaboratore", lavorazione[1])},
+                    "tipo": {"id": lavorazione[3],"nome": get_nome("tipo_lavorazione", lavorazione[3])},
                     "durata": json.loads(lavorazione[4])
                     }
                 tmp_lavorazioni.append(tmp_lavorazione)
@@ -132,7 +141,6 @@ def dati_mcp(tipo):
                 "note": commessa[6],
                 "lavorazioni": tmp_lavorazioni
                 }
-            print(tmp_commessa)
             dati.append(tmp_commessa)
     mcpDB.commit()
     mcpDB.close()
@@ -142,11 +150,41 @@ def dati_mcp(tipo):
 def homepage():
     return render_template("index.html")
 
-@app.route("/dashboard")
+@app.route("/dashboard", methods=("GET", "POST"))
 @login_required
 def dashboard():
-    dati_mcp("commesse_complete")
-    return render_template("dashboard.html", gestione=gestisce())
+    if request.method == "POST":
+        try:
+            request.form["trasferta"]
+            tmp_trasferta = True
+        except:
+            tmp_trasferta = False
+        try:
+            anno, mese, giorno = request.form["data"].split('-')
+            tmp = datetime.date(int(anno), int(mese), int(giorno))
+            tmp_ore = float(request.form["ore"])
+            ore, minuti = str(tmp_ore).split('.')
+            tmp = datetime.time(hour=int(ore), minute=(int(60*(int(minuti)/10))))
+            dati_validi = True
+        except:
+            dati_validi = False
+        tmp_dati = {
+            "form": request.form["id_form"],
+            "id_commessa": request.form["id_commessa"],
+            "id_lavorazione": request.form["id_lavorazione"],
+            "tipo": request.form["tipo"],
+            "durata": {
+                "data": request.form["data"],
+                "ore": request.form["ore"],
+                "trasferta": tmp_trasferta
+                }
+            }
+        if dati_validi:
+            insert_edit_lavorazione(tmp_dati)
+            flash("Inserito con successo!")
+        else:
+            flash("Dati errati.")
+    return render_template("dashboard.html", gestione=gestisce(), dati=dati_mcp("commesse_complete"))
 
 @app.route("/storico")
 @login_required

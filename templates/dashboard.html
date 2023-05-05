@@ -48,149 +48,192 @@
 
 <h2><strong>Commesse attive</strong></h2>
 
-<ul class="nav nav-tabs">
-  <li class="nav-item">
-    <a class="nav-link active" aria-current="page" href="#">#0001</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="#">#0004</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="#">#000B</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link">#0017</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="#">#0019</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="#">#0035</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link">#0037</a>
-  </li>
-</ul>
-<h5 class="my-2"><strong>Tubiline - ClienteX</strong>
-<a class="btn btn-sm btn-warning" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">Dettagli</a>
-</h5>
-<div class="collapse" id="collapseExample">
-  <div class="card card-body">
-    <p><strong>Note: </strong>Campo libero per scrivere cose tipo bho il cliente è uno stronzo ma ci ha aumentato il budget quindi bene.</p>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <div class="my-2 alert alert-warning alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
 
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="base-tab" data-bs-toggle="tab" data-bs-target="#base-tab-pane" type="button" role="tab" aria-controls="base-tab-pane" aria-selected="true">Commesse Attive</button>
+  </li>
+{% for i in dati %}
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="false">#{{ i["numero"] }}</button>
+  </li>
+{% endfor %}
+</ul>
+
+<div class="tab-content" id="myTabContent">
+  <div class="tab-pane fade show active" id="base-tab-pane" role="tabpanel" aria-labelledby="base-tab" tabindex="0">
+  <p>Benenuto {{ current_user.username }}<br>Da mettere qui il riepilogo filtrabile</p>
+  </div>
+{% for i in dati %}
+  <div class="tab-pane fade" id="{{ i["id"] }}-tab-pane" role="tabpanel" aria-labelledby="{{ i["id"] }}-tab" tabindex="0">
+
+  <h5 class="my-2"><strong>{{ i["nome"] }} - {{ i["cliente"] }}</strong></h5>
+  <p><strong>Note: </strong>{{ i["note"] }}</p>
+
+  <div class="table-responsive">
   <table class="table">
-  <thead>
-    <tr>
-      <th scope="col">Data apertura</th>
-      <th scope="col">Monte ore contratto</th>
-      <th scope="col">Budget [€]</th>
-      <th scope="col">Guadagno [€]</th>
-      <th scope="col">Ore disponibili</th>
-      <th scope="col">Project Manager</th>
-      <th scope="col">Azioni</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th scope="row">21/03/20231</th>
-      <td>200</td>
-      <td>5000</td>
-      <td>4000</td>
-      <td>180</td>
-      <td>Fabio Cini</td>
-      <td><a href="">Modifica</a></td>
-    </tr>
-  </tbody>
-</table>
+    <thead>
+      <tr>
+        <th scope="col">Data apertura</th>
+        <th scope="col">Monte ore contratto</th>
+        <th scope="col">Budget [€]</th>
+        <th scope="col">Guadagno [€]</th>
+        <th scope="col">Ore disponibili</th>
+        <th scope="col">Project Manager</th>
+        <th scope="col">Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">{{ i["durata"]["inizio"][8:10] }}/{{ i["durata"]["inizio"][5:7] }}/{{ i["durata"]["inizio"][0:4] }}</th>
+        <td>{{ i["specifiche"]["budget_ore"] }}</td>
+        <td>{{ i["specifiche"]["budget_euro"] }}</td>
+        <td>4000</td>
+        <td>180</td>
+        <td>{{ i["specifiche"]["project_manager"] }}</td>
+        <td><a href="">Modifica</a></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="">Inserisci</button>
+
+  <div class="table-responsive">
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Data inserimento</th>
+        <th scope="col">Collaboratore</th>
+        <th scope="col">Ore</th>
+        <th scope="col">Tipologia</th>
+        <th scope="col">Costo</th>
+        <th scope="col">Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for y in i["lavorazioni"] %}
+      <tr>
+        <th scope="row">{{ y["id"] }}</th>
+        <td>{{ y["durata"]["data"][8:10] }}/{{ y["durata"]["data"][5:7] }}/{{ y["durata"]["data"][0:4] }}</td>
+        <td>{{ y["collaboratore"]["nome"] }}
+        {% if y["durata"]["trasferta"] %}
+        <span class="badge rounded-pill text-bg-info">Trasferta</span>
+        {% endif %}
+        </td>
+        <td>{{ y["durata"]["ore"] }}</td>
+        <td>{{ y["tipo"]["nome"] }}</td>
+        {% if gestione %}
+        <td>120</td>
+        {% endif %}
+        <td><button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ y | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Modifica</button></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
 
   </div>
+{% endfor %}
 </div>
-<div class="table-responsive">
-<table class="table">
-  <thead>
-    <tr>
-      <th scope="col">Data inserimento</th>
-      <th scope="col">Collaboratore</th>
-      <th scope="col">Ore</th>
-      <th scope="col">Tipologia</th>
-      <th scope="col">Costo</th>
-      <th scope="col">Azioni</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th scope="row">21/03/20231</th>
-      <td>Luca</td>
-      <td>4,5</td>
-      <td>piping</td>
-      <td>120</td>
-      <td><a href="">Modifica</a></td>
-    </tr>
-    <tr>
-      <th scope="row">21/03/20231</th>
-      <td>Isabella <span class="badge text-bg-info">Trasferta</span></td>
-      <td>4,5</td>
-      <td>piping</td>
-      <td>220</td>
-      <td><a href="">Modifica</a></td>
-    </tr>
-    <tr>
-      <th scope="row">21/03/20231</th>
-      <td>Luca</td>
-      <td>4,5</td>
-      <td>piping</td>
-      <td>120</td>
-      <td><a href="">Modifica</a></td>
-    </tr>
-    <tr>
-      <th scope="row">21/03/20231</th>
-      <td>Luca</td>
-      <td>4,5</td>
-      <td>piping</td>
-      <td>120</td>
-      <td><a href="">Modifica</a></td>
-    </tr>
-    <tr>
-      <th scope="row">21/03/20231</th>
-      <td>Isabella <span class="badge text-bg-info">Trasferta</span></td>
-      <td>4,5</td>
-      <td>piping</td>
-      <td>220</td>
-      <td><a href="">Modifica</a></td>
-    </tr>
-    <tr>
-      <th scope="row">21/03/20231</th>
-      <td>Luca</td>
-      <td>4,5</td>
-      <td>piping</td>
-      <td>120</td>
-      <td><a href="">Modifica</a></td>
-    </tr>
-    <tr>
-      <th scope="row">21/03/20231</th>
-      <td>Luca</td>
-      <td>4,5</td>
-      <td>piping</td>
-      <td>120</td>
-      <td><a href="">Modifica</a></td>
-    </tr>
-    <tr>
-      <th scope="row">21/03/20231</th>
-      <td>Isabella <span class="badge text-bg-info">Trasferta</span></td>
-      <td>4,5</td>
-      <td>piping</td>
-      <td>220</td>
-      <td><a href="">Modifica</a></td>
-    </tr>
-    <tr>
-      <th scope="row">21/03/20231</th>
-      <td>Luca</td>
-      <td>4,5</td>
-      <td>piping</td>
-      <td>120</td>
-      <td><a href="">Modifica</a></td>
-    </tr>
-  </tbody>
-</table>
+
+<!--Modal per le lavorazioni-->
+<div class="modal fade" id="lavorazioniModal" tabindex="-1" aria-labelledby="lavorazioniModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="lavorazioniModalLabel">Inserisci nuova lavorazione</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="inserisci_lavorazione">
+          <input type="hidden" id="id_commessa" name="id_commessa" value="">
+          <input type="hidden" id="id_lavorazione" name="id_lavorazione" value="">
+          <div class="mb-3">
+            <label for="recipient-name" class="col-form-label">Data</label>
+            <input type="date" class="form-control" id="data" name="data">
+          </div>
+          <div class="mb-3">
+            <label for="message-text" class="col-form-label">Ore:</label>
+            <input type="text" class="form-control" id="ore" name="ore">
+            <div id="oreHelp" class="form-text">Inserisci il numero es: "3.5" = 3h e 30min</div>
+          </div>
+          <div class="mb-3">
+            <label for="message-text" class="col-form-label">Tipo Lavorazione:</label>
+            <select class="form-select" aria-label="Tipo Lavorazione" id="tipo" name="tipo">
+              <option value="1">Supporti</option>
+              <option value="2">Piping</option>
+              <option value="3">Stress Analysis</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="trasferta" id="trasferta" name="trasferta">
+              <label class="form-check-label" for="trasferta">Trasferta</label>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-warning btn-sm">Inserisci</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
+
+<script>
+const lavorazioniModal = document.getElementById('lavorazioniModal')
+lavorazioniModal.addEventListener('show.bs.modal', event => {
+  // Button that triggered the modal
+  const button = event.relatedTarget
+  // Extract info from data-bs-* attributes
+  const id_commessa = button.getAttribute('data-bs-id_commessa')
+  const tmp_dati = button.getAttribute('data-bs-tmp_dati')
+  // If necessary, you could initiate an AJAX request here
+  // and then do the updating in a callback.
+  //
+  // Update the modal's content.
+  const modalTitle = lavorazioniModal.querySelector('.modal-title')
+  const id_form = lavorazioniModal.querySelector('#id_form')
+  const in_id_commessa = lavorazioniModal.querySelector('#id_commessa')
+  const id_lavorazione = lavorazioniModal.querySelector('#id_lavorazione')
+  const data = lavorazioniModal.querySelector('#data')
+  const ore = lavorazioniModal.querySelector('#ore')
+  const tipo = lavorazioniModal.querySelector('#tipo')
+  const trasferta = lavorazioniModal.querySelector('#trasferta')
+  in_id_commessa.value = `${id_commessa}`
+  if (tmp_dati == "") {
+  modalTitle.textContent = `Inserisci nuova lavorazione`
+  id_form.value = `inserisci_lavorazione`
+  id_lavorazione.value = ``
+  data.value = ``
+  ore.value = ``
+  tipo.value = `1`
+  trasferta.checked = false
+
+  } else {
+  modalTitle.textContent = `Modifica Lavorazione #${JSON.parse(tmp_dati)["id"]}`
+  id_form.value = `modifica_lavorazione`
+  id_lavorazione.value = `${JSON.parse(tmp_dati)["id"]}`
+  data.value = `${JSON.parse(tmp_dati)["durata"]["data"]}`
+  ore.value = `${JSON.parse(tmp_dati)["durata"]["ore"]}`
+  tipo.value = `${JSON.parse(tmp_dati)["tipo"]["id"]}`
+  trasferta.checked = JSON.parse(tmp_dati)["durata"]["trasferta"]
+
+  }
+})
+</script>
+
 {% endblock %}
