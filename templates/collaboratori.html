@@ -20,12 +20,12 @@
     <span>Amministrazione</span>
   </h6>
   <li class="nav-item">
-    <a class="nav-link active" aria-current="page"" href="{{ url_for("collaboratori") }}">
+    <a class="nav-link active" aria-current="page" href="{{ url_for("collaboratori") }}">
       Collaboratori
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="">
+    <a class="nav-link" href="{{ url_for("clienti") }}">
       Clienti
     </a>
   </li>
@@ -61,7 +61,7 @@
 
 <h2><strong>Collaboratori</strong></h2>
 <!-- Button trigger modal -->
-<button type="button" class="btn" style="background-color: orange;" data-bs-toggle="modal" data-bs-target="#nuovo_collabModal">Nuovo Collaboratore</button>
+<button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#nuovo_collabModal">Nuovo Collaboratore</button>
 
 <div class="table-responsive">
 <table class="table">

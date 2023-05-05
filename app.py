@@ -191,6 +191,16 @@ def dashboard():
 def storico():
     return render_template("storico.html", gestione=gestisce())
 
+@app.route("/clienti")
+@login_required
+def clienti():
+    return render_template("clienti.html", gestione=gestisce())
+
+@app.route("/dettaglio_storico")
+@login_required
+def dettaglio_storico():
+    return render_template("dettaglio_storico.html", gestione=gestisce())
+
 #GESTIONE ACCOUNT - GESTIONE LOGIN
 @app.route("/account", methods=("GET", "POST"))
 @login_required

@@ -25,7 +25,7 @@
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="">
+    <a class="nav-link" href="{{ url_for("clienti") }}">
       Clienti
     </a>
   </li>
@@ -63,7 +63,7 @@
 
 <ul class="nav nav-tabs" id="myTab" role="tablist">
   <li class="nav-item" role="presentation">
-    <button class="nav-link active" id="base-tab" data-bs-toggle="tab" data-bs-target="#base-tab-pane" type="button" role="tab" aria-controls="base-tab-pane" aria-selected="true">Commesse Attive</button>
+    <button class="nav-link active" id="base-tab" data-bs-toggle="tab" data-bs-target="#base-tab-pane" type="button" role="tab" aria-controls="base-tab-pane" aria-selected="true">Riepilogo</button>
   </li>
 {% for i in dati %}
   <li class="nav-item" role="presentation">
@@ -74,7 +74,197 @@
 
 <div class="tab-content" id="myTabContent">
   <div class="tab-pane fade show active" id="base-tab-pane" role="tabpanel" aria-labelledby="base-tab" tabindex="0">
-  <p>Benenuto {{ current_user.username }}<br>Da mettere qui il riepilogo filtrabile</p>
+
+  <td><button type="button" class="btn btn-warning btn-sm my-2">Nuova Commessa</button></td>
+<div class="table-responsive">
+<table class="table" id="storico">
+  <thead>
+    <tr>
+      <th scope="col">ID Commessa<br><input type="text" class="form-control" id="s_id" onkeyup="f_id()" placeholder=""></th>
+      <th scope="col">Cliente<br><input type="text" class="form-control" id="s_cliente" onkeyup="f_cliente()" placeholder=""></th>
+      <th scope="col">Nome<br><input type="text" class="form-control" id="s_nome" onkeyup="f_nome()" placeholder=""></th>
+      <th scope="col">Data apertura<br><input type="text" class="form-control" id="s_data_a" onkeyup="f_data_a()" placeholder=""></th>
+      <th scope="col">Ore lavorate<br><input type="text" class="form-control" id="s_ore" onkeyup="f_ore()" placeholder=""></th>
+      <th scope="col">Budget [€]<br><input type="text" class="form-control" id="s_budget" onkeyup="f_budget()" placeholder=""></th>
+      <th scope="col">Guadagno [€]<br><input type="text" class="form-control" id="s_guadagno" onkeyup="f_guadagno()" placeholder=""></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for i in dati %}
+    <tr>
+      <td>#{{ i["numero"] }}</td>
+      <td>{{ i["cliente"] }}</td>
+      <td>{{ i["nome"] }}</td>
+      <td>{{ i["durata"]["inizio"][8:10] }}/{{ i["durata"]["inizio"][5:7] }}/{{ i["durata"]["inizio"][0:4] }}</td>
+      <td>20</td>
+      <td>{{ i["specifiche"]["budget_euro"] }}</td>
+      <td>4000</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+<script>
+
+function f_id() {
+  // Declare variables
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementById("s_id");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("storico");
+  tr = table.getElementsByTagName("tr");
+
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[0];
+    if (td) {
+      txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
+
+function f_cliente() {
+  // Declare variables
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementById("s_cliente");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("storico");
+  tr = table.getElementsByTagName("tr");
+
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[1];
+    if (td) {
+      txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
+
+function f_nome() {
+  // Declare variables
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementById("s_nome");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("storico");
+  tr = table.getElementsByTagName("tr");
+
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[2];
+    if (td) {
+      txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
+
+function f_data_a() {
+  // Declare variables
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementById("s_data_a");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("storico");
+  tr = table.getElementsByTagName("tr");
+
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[3];
+    if (td) {
+      txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
+
+function f_ore() {
+  // Declare variables
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementById("s_ore");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("storico");
+  tr = table.getElementsByTagName("tr");
+
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[5];
+    if (td) {
+      txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
+
+function f_budget() {
+  // Declare variables
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementById("s_budget");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("storico");
+  tr = table.getElementsByTagName("tr");
+
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[6];
+    if (td) {
+      txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
+
+function f_guadagno() {
+  // Declare variables
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementById("s_guadagno");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("storico");
+  tr = table.getElementsByTagName("tr");
+
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[7];
+    if (td) {
+      txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
+
+</script>
+
+
+</div>
   </div>
 {% for i in dati %}
   <div class="tab-pane fade" id="{{ i["id"] }}-tab-pane" role="tabpanel" aria-labelledby="{{ i["id"] }}-tab" tabindex="0">
@@ -88,9 +278,11 @@
       <tr>
         <th scope="col">Data apertura</th>
         <th scope="col">Monte ore contratto</th>
+        {% if gestione %}
         <th scope="col">Budget [€]</th>
         <th scope="col">Guadagno [€]</th>
         <th scope="col">Ore disponibili</th>
+        {% endif %}
         <th scope="col">Project Manager</th>
         <th scope="col">Azioni</th>
       </tr>
@@ -99,11 +291,13 @@
       <tr>
         <th scope="row">{{ i["durata"]["inizio"][8:10] }}/{{ i["durata"]["inizio"][5:7] }}/{{ i["durata"]["inizio"][0:4] }}</th>
         <td>{{ i["specifiche"]["budget_ore"] }}</td>
+        {% if gestione %}
         <td>{{ i["specifiche"]["budget_euro"] }}</td>
         <td>4000</td>
         <td>180</td>
+        {% endif %}
         <td>{{ i["specifiche"]["project_manager"] }}</td>
-        <td><a href="">Modifica</a></td>
+        <td><button type="button" class="btn btn-warning btn-sm">Modifica</button></td>
       </tr>
     </tbody>
   </table>
@@ -120,7 +314,9 @@
         <th scope="col">Collaboratore</th>
         <th scope="col">Ore</th>
         <th scope="col">Tipologia</th>
+        {% if gestione %}
         <th scope="col">Costo</th>
+        {% endif %}
         <th scope="col">Azioni</th>
       </tr>
     </thead>

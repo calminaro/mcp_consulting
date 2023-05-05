@@ -25,7 +25,7 @@
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="">
+    <a class="nav-link" href="{{ url_for("clienti") }}">
       Clienti
     </a>
   </li>
@@ -73,7 +73,7 @@
       <td>20</td>
       <td>5000</td>
       <td>8000</td>
-      <td><a href="">Dettaglio</a></td>
+      <td><a href="{{ url_for("dettaglio_storico") }}">Dettaglio</a></td>
     </tr>
     <tr>
       <td>#0003</td>
@@ -84,10 +84,10 @@
       <td>18</td>
       <td>2000</td>
       <td>1000</td>
-      <td><a href="">Dettaglio</a></td>
+      <td><a href="{{ url_for("dettaglio_storico") }}">Dettaglio</a></td>
     </tr>
     <tr>
-      <td>#000A</td>
+      <td>#000B</td>
       <td></td>
       <td>Offerte</td>
       <td>19/02/2023</td>
@@ -95,7 +95,7 @@
       <td>15</td>
       <td>4000</td>
       <td>7000</td>
-      <td><a href="">Dettaglio</a></td>
+      <td><a href="{{ url_for("dettaglio_storico") }}">Dettaglio</a></td>
     </tr>
   </tbody>
 </table>
