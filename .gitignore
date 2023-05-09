@@ -1,6 +1,5 @@
 credenziali.json
-mcp.db
+*.db
 creaDB.py
-/instance/utenti.db
 /__pycache__
 
