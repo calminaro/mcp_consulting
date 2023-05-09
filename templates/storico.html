@@ -52,9 +52,9 @@
 <table class="table" id="storico">
   <thead>
     <tr>
-      <th scope="col">ID Commessa<br><input type="text" class="form-control" id="s_id" onkeyup="f_id()" placeholder=""></th>
-      <th scope="col">Cliente<br><input type="text" class="form-control" id="s_cliente" onkeyup="f_cliente()" placeholder=""></th>
+      <th scope="col">N° Commessa<br><input type="text" class="form-control" id="s_id" onkeyup="f_id()" placeholder=""></th>
       <th scope="col">Nome<br><input type="text" class="form-control" id="s_nome" onkeyup="f_nome()" placeholder=""></th>
+      <th scope="col">Cliente<br><input type="text" class="form-control" id="s_cliente" onkeyup="f_cliente()" placeholder=""></th>
       <th scope="col">Data apertura<br><input type="text" class="form-control" id="s_data_a" onkeyup="f_data_a()" placeholder=""></th>
       <th scope="col">Data chiusura<br><input type="text" class="form-control" id="s_data_c" onkeyup="f_data_c()" placeholder=""></th>
       <th scope="col">Ore lavorate<br><input type="text" class="form-control" id="s_ore" onkeyup="f_ore()" placeholder=""></th>
@@ -66,8 +66,8 @@
   <tbody>
     <tr>
       <td>#0002</td>
-      <td>Dromont</td>
       <td></td>
+      <td>Dromont</td>
       <td>21/02/2023</td>
       <td>24/04/2023</td>
       <td>20</td>
@@ -77,8 +77,8 @@
     </tr>
     <tr>
       <td>#0003</td>
-      <td>ST-Agrate</td>
       <td></td>
+      <td>ST-Agrate</td>
       <td>21/03/2023</td>
       <td>24/05/2023</td>
       <td>18</td>
@@ -88,8 +88,8 @@
     </tr>
     <tr>
       <td>#000B</td>
-      <td></td>
       <td>Offerte</td>
+      <td></td>
       <td>19/02/2023</td>
       <td>28/04/2023</td>
       <td>15</td>
@@ -125,10 +125,10 @@ function f_id() {
   }
 }
 
-function f_cliente() {
+function f_nome() {
   // Declare variables
   var input, filter, table, tr, td, i, txtValue;
-  input = document.getElementById("s_cliente");
+  input = document.getElementById("s_nome");
   filter = input.value.toUpperCase();
   table = document.getElementById("storico");
   tr = table.getElementsByTagName("tr");
@@ -147,10 +147,10 @@ function f_cliente() {
   }
 }
 
-function f_nome() {
+function f_cliente() {
   // Declare variables
   var input, filter, table, tr, td, i, txtValue;
-  input = document.getElementById("s_nome");
+  input = document.getElementById("s_cliente");
   filter = input.value.toUpperCase();
   table = document.getElementById("storico");
   tr = table.getElementsByTagName("tr");
