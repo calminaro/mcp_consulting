@@ -29,6 +29,11 @@
       Clienti
     </a>
   </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("collaboratori") }}">
+      Report
+    </a>
+  </li>
   {% endif %}
   <hr>
   <li class="nav-item">
@@ -60,9 +65,53 @@
 {% endwith %}
 
 <h2><strong>Clienti</strong></h2>
-<div class="text-center">
-<img src="/static/cat.png" class="img-fluid" alt="...">
-<p>Questa pagina ancora non esiste :)</p>
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#nuovo_clienteModal">Nuovo Cliente</button>
+
+<div class="table-responsive">
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Nome</th>
+      <th scope="col">Azioni</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for i in clienti %}
+    <tr>
+      <td>{{i[0]}}</td>
+      <td>{{i[1]}}</td>
+      <td>
+      <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#dettagli_collabModal">Modifica</button>
+      <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#dettagli_collabModal">Elimina</button>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="nuovo_clienteModal" tabindex="-1" aria-labelledby="nuovo_clienteModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="nuovo_clienteModal">Nuovo Cliente</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="nuovo_cliente">
+          <div class="mb-3">
+            <label for="nome" class="form-label">Nome Cliente</label>
+            <input type="text" class="form-control" id="nome" name="nome">
+          </div>
+          <button type="submit" class="btn btn-primary">Aggiungi cliente</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
 {% endblock %}

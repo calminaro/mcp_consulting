@@ -57,6 +57,15 @@ def gestisce():
         gestione = True
     return gestione
 
+def get_clienti():
+    mcpDB = sqlite3.connect(mcpDB_path)
+    cur = mcpDB.cursor()
+    cur.execute("select * from clienti")
+    clienti = cur.fetchall()
+    mcpDB.commit()
+    mcpDB.close()
+    return clienti
+
 def get_nome(tipo, tmp_id):
     mcpDB = sqlite3.connect(mcpDB_path)
     cur = mcpDB.cursor()
@@ -75,6 +84,17 @@ def get_nome(tipo, tmp_id):
     mcpDB.close()
     return nome
 
+def get_costo(tmp_id, durata):
+    costo = 0.0
+    tmp_durata = float(durata["ore"])
+    if durata["trasferta"]:
+        costo += 100
+        tmp_durata = 8.0
+    user = User.query.filter_by(id=tmp_id).first()
+    user_costo = float(user.collaboratore["costo"])
+    costo = costo + (tmp_durata*user_costo)
+    return costo
+
 def insert_edit_lavorazione(dati):
     mcpDB = sqlite3.connect(mcpDB_path)
     cur = mcpDB.cursor()
@@ -82,6 +102,20 @@ def insert_edit_lavorazione(dati):
         cur.execute("INSERT INTO lavorazioni (collaboratore, commessa, tipo, durata) VALUES (?,?,?,?)", [int(current_user.id), int(dati["id_commessa"]), int(dati["tipo"]), json.dumps(dati["durata"])])
     elif dati["form"] == "modifica_lavorazione":
         cur.execute("UPDATE lavorazioni SET tipo = ?, durata = ?WHERE id = ?", [int(dati["tipo"]), json.dumps(dati["durata"]), int(dati["id_lavorazione"])])
+    elif dati["form"] == "elimina_lavorazione":
+        print("dovrei eliminare: ", dati)
+    mcpDB.commit()
+    mcpDB.close()
+
+def insert_edit_commessa(dati):
+    mcpDB = sqlite3.connect(mcpDB_path)
+    cur = mcpDB.cursor()
+    if dati["form"] == "inserisci_commessa":
+        cur.execute("INSERT INTO lavorazioni (collaboratore, commessa, tipo, durata) VALUES (?,?,?,?)", [int(current_user.id), int(dati["id_commessa"]), int(dati["tipo"]), json.dumps(dati["durata"])])
+    elif dati["form"] == "modifica_commessa":
+        cur.execute("UPDATE lavorazioni SET tipo = ?, durata = ?WHERE id = ?", [int(dati["tipo"]), json.dumps(dati["durata"]), int(dati["id_lavorazione"])])
+    elif dati["form"] == "elimina_commessa":
+        print("dovrei eliminare: ", dati)
     mcpDB.commit()
     mcpDB.close()
 
@@ -97,13 +131,13 @@ def dati_mcp(tipo):
             tmp_specifiche = {
                     "budget_ore": json.loads(commessa[4])["budget_ore"],
                     "budget_euro": json.loads(commessa[4])["budget_euro"],
-                    "project_manager": get_nome("collaboratore", json.loads(commessa[4])["project_manager"])
+                    "project_manager": {"id": json.loads(commessa[4])["project_manager"],"nome": get_nome("collaboratore", json.loads(commessa[4])["project_manager"])}
                     }
             tmp_commessa = {
                 "id": commessa[0],
                 "numero": commessa[1],
                 "nome": commessa[2],
-                "cliente": get_nome("cliente", commessa[3]),
+                "cliente": {"id": commessa[3],"nome": get_nome("cliente", commessa[3])},
                 "specifiche": tmp_specifiche,
                 "durata": json.loads(commessa[5]),
                 "note": commessa[6]
@@ -115,27 +149,34 @@ def dati_mcp(tipo):
         commesse = cur.fetchall()
         dati = []
         for commessa in commesse:
-            tmp_specifiche = {
-                    "budget_ore": json.loads(commessa[4])["budget_ore"],
-                    "budget_euro": json.loads(commessa[4])["budget_euro"],
-                    "project_manager": get_nome("collaboratore", json.loads(commessa[4])["project_manager"])
-                    }
             cur.execute("select * from lavorazioni where commessa = ?", [commessa[0]])
             lavorazioni = cur.fetchall()
             tmp_lavorazioni = []
+            ore_lavorate = 0.0
+            euro_spesi = 0.0
             for lavorazione in lavorazioni:
                 tmp_lavorazione = {
                     "id": lavorazione[0],
                     "collaboratore": {"id": lavorazione[1],"nome": get_nome("collaboratore", lavorazione[1])},
                     "tipo": {"id": lavorazione[3],"nome": get_nome("tipo_lavorazione", lavorazione[3])},
-                    "durata": json.loads(lavorazione[4])
+                    "durata": json.loads(lavorazione[4]),
+                    "costo": get_costo(lavorazione[1], json.loads(lavorazione[4]))
                     }
+                ore_lavorate += float(tmp_lavorazione["durata"]["ore"])
+                euro_spesi += tmp_lavorazione["costo"]
                 tmp_lavorazioni.append(tmp_lavorazione)
+            tmp_specifiche = {
+                    "budget_ore": float(json.loads(commessa[4])["budget_ore"]),
+                    "budget_euro": float(json.loads(commessa[4])["budget_euro"]),
+                    "ore_lavorate": ore_lavorate,
+                    "euro_spesi": euro_spesi,
+                    "project_manager": {"id": json.loads(commessa[4])["project_manager"],"nome": get_nome("collaboratore", json.loads(commessa[4])["project_manager"])}
+                    }
             tmp_commessa = {
                 "id": commessa[0],
                 "numero": commessa[1],
                 "nome": commessa[2],
-                "cliente": get_nome("cliente", commessa[3]),
+                "cliente": {"id": commessa[3],"nome": get_nome("cliente", commessa[3])},
                 "specifiche": tmp_specifiche,
                 "durata": json.loads(commessa[5]),
                 "note": commessa[6],
@@ -153,38 +194,50 @@ def homepage():
 @app.route("/dashboard", methods=("GET", "POST"))
 @login_required
 def dashboard():
+    pagina = "riepilogo"
     if request.method == "POST":
-        try:
-            request.form["trasferta"]
-            tmp_trasferta = True
-        except:
-            tmp_trasferta = False
-        try:
-            anno, mese, giorno = request.form["data"].split('-')
-            tmp = datetime.date(int(anno), int(mese), int(giorno))
-            tmp_ore = float(request.form["ore"])
-            ore, minuti = str(tmp_ore).split('.')
-            tmp = datetime.time(hour=int(ore), minute=(int(60*(int(minuti)/10))))
-            dati_validi = True
-        except:
-            dati_validi = False
-        tmp_dati = {
-            "form": request.form["id_form"],
-            "id_commessa": request.form["id_commessa"],
-            "id_lavorazione": request.form["id_lavorazione"],
-            "tipo": request.form["tipo"],
-            "durata": {
-                "data": request.form["data"],
-                "ore": request.form["ore"],
-                "trasferta": tmp_trasferta
+        if request.form["id_form"] == "inserisci_lavorazione" or request.form["id_form"] == "modifica_lavorazione":
+            try:
+                request.form["trasferta"]
+                tmp_trasferta = True
+            except:
+                tmp_trasferta = False
+            try:
+                anno, mese, giorno = request.form["data"].split('-')
+                tmp = datetime.date(int(anno), int(mese), int(giorno))
+                tmp_ore = float(request.form["ore"])
+                ore, minuti = str(tmp_ore).split('.')
+                tmp = datetime.time(hour=int(ore), minute=(int(60*(int(minuti)/10))))
+                dati_validi = True
+            except:
+                dati_validi = False
+            tmp_dati = {
+                "form": request.form["id_form"],
+                "id_commessa": request.form["id_commessa"],
+                "id_lavorazione": request.form["id_lavorazione"],
+                "tipo": request.form["tipo"],
+                "durata": {
+                    "data": request.form["data"],
+                    "ore": request.form["ore"],
+                    "trasferta": tmp_trasferta
+                    }
                 }
-            }
-        if dati_validi:
+            if dati_validi:
+                insert_edit_lavorazione(tmp_dati)
+                flash("Inserito con successo!")
+            else:
+                flash("Dati errati.")
+            pagina = tmp_dati["id_commessa"]
+        elif request.form["id_form"] == "elimina_lavorazione":
+            tmp_dati = {
+                "form": request.form["id_form"],
+                "id_commessa": request.form["id_commessa"],
+                "id_lavorazione": request.form["id_lavorazione"]
+                }
             insert_edit_lavorazione(tmp_dati)
-            flash("Inserito con successo!")
-        else:
-            flash("Dati errati.")
-    return render_template("dashboard.html", gestione=gestisce(), dati=dati_mcp("commesse_complete"))
+            flash("Eliminato con successo!")
+            pagina = tmp_dati["id_commessa"]
+    return render_template("dashboard.html", gestione=gestisce(), dati=dati_mcp("commesse_complete"), clienti=get_clienti(), utenti=User.query.all(), pagina=pagina)
 
 @app.route("/storico")
 @login_required
@@ -194,7 +247,7 @@ def storico():
 @app.route("/clienti")
 @login_required
 def clienti():
-    return render_template("clienti.html", gestione=gestisce())
+    return render_template("clienti.html", gestione=gestisce(), clienti=get_clienti())
 
 @app.route("/dettaglio_storico")
 @login_required
@@ -252,7 +305,7 @@ def collaboratori():
                     }
                 collaboratore = {
                     "ruolo": request.form["ruolo"],
-                    "costo": request.form["costo"]
+                    "costo": request.form["costo"] if request.form["costo"] != "" else "0"
                     }
 
                 #msg = Message("MCP Consulting - Nuovo Account", sender = cr["mail"]["mail"], recipients = [request.form["mail"]])
@@ -265,8 +318,7 @@ def collaboratori():
                 return redirect(url_for("login"))
             else:
                 flash("Esiste già un utente "+request.form["username!"])
-    utenti = User.query.all()
-    return render_template("collaboratori.html", gestione=gestisce(), utenti=utenti)
+    return render_template("collaboratori.html", gestione=gestisce(), utenti=User.query.all())
 
 @app.errorhandler(404)
 def page_not_found(e):

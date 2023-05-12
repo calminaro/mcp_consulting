@@ -50,43 +50,55 @@
 
 {% with messages = get_flashed_messages() %}
   {% if messages %}
-    <ul class=flashes>
     {% for message in messages %}
       <div class="my-2 alert alert-warning alert-dismissible fade show" role="alert">
         {{ message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
     {% endfor %}
-    </ul>
   {% endif %}
 {% endwith %}
 
+
 <ul class="nav nav-tabs" id="myTab" role="tablist">
   <li class="nav-item" role="presentation">
+  {% if pagina == "riepilogo" %}
     <button class="nav-link active" id="base-tab" data-bs-toggle="tab" data-bs-target="#base-tab-pane" type="button" role="tab" aria-controls="base-tab-pane" aria-selected="true">Riepilogo</button>
+    {% else %}
+    <button class="nav-link" id="base-tab" data-bs-toggle="tab" data-bs-target="#base-tab-pane" type="button" role="tab" aria-controls="base-tab-pane" aria-selected="false">Riepilogo</button>
+    {% endif %}
   </li>
 {% for i in dati %}
   <li class="nav-item" role="presentation">
+  {% if pagina|string == i["id"]|string %}
+    <button class="nav-link active" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="true">#{{ i["numero"] }}</button>
+  {% else %}
     <button class="nav-link" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="false">#{{ i["numero"] }}</button>
+    {% endif %}
   </li>
 {% endfor %}
 </ul>
 
 <div class="tab-content" id="myTabContent">
+  {% if pagina == "riepilogo" %}
   <div class="tab-pane fade show active" id="base-tab-pane" role="tabpanel" aria-labelledby="base-tab" tabindex="0">
+  {% else %}
+  <div class="tab-pane fade" id="base-tab-pane" role="tabpanel" aria-labelledby="base-tab" tabindex="0">
+  {% endif %}
 
-  <td><button type="button" class="btn btn-warning btn-sm my-2">Nuova Commessa</button></td>
+  <button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#commesseModal" data-bs-tmp_dati="">Nuova Commessa</button>
+
 <div class="table-responsive">
 <table class="table" id="storico">
   <thead>
     <tr>
-      <th scope="col">N° Commessa<br><input type="text" class="form-control" id="s_id" onkeyup="f_id()" placeholder=""></th>
-      <th scope="col">Nome Commessa<br><input type="text" class="form-control" id="s_nome" onkeyup="f_nome()" placeholder=""></th>
-      <th scope="col">Cliente<br><input type="text" class="form-control" id="s_cliente" onkeyup="f_cliente()" placeholder=""></th>
-      <th scope="col">Data apertura<br><input type="text" class="form-control" id="s_data_a" onkeyup="f_data_a()" placeholder=""></th>
-      <th scope="col">Ore lavorate<br><input type="text" class="form-control" id="s_ore" onkeyup="f_ore()" placeholder=""></th>
-      <th scope="col">Budget [€]<br><input type="text" class="form-control" id="s_budget" onkeyup="f_budget()" placeholder=""></th>
-      <th scope="col">Guadagno [€]<br><input type="text" class="form-control" id="s_guadagno" onkeyup="f_guadagno()" placeholder=""></th>
+      <th scope="col">N° Commessa<br><input type="text" class="form-control form-control-sm" id="s_id" onkeyup="f_id()" placeholder=""></th>
+      <th scope="col">Nome Commessa<br><input type="text" class="form-control form-control-sm" id="s_nome" onkeyup="f_nome()" placeholder=""></th>
+      <th scope="col">Cliente<br><input type="text" class="form-control form-control-sm" id="s_cliente" onkeyup="f_cliente()" placeholder=""></th>
+      <th scope="col">Data apertura<br><input type="text" class="form-control form-control-sm" id="s_data_a" onkeyup="f_data_a()" placeholder=""></th>
+      <th scope="col">Ore lavorate<br><input type="text" class="form-control form-control-sm" id="s_ore" onkeyup="f_ore()" placeholder=""></th>
+      <th scope="col">Budget [€]<br><input type="text" class="form-control form-control-sm" id="s_budget" onkeyup="f_budget()" placeholder=""></th>
+      <th scope="col">Costo [€]<br><input type="text" class="form-control form-control-sm" id="s_guadagno" onkeyup="f_guadagno()" placeholder=""></th>
     </tr>
   </thead>
   <tbody>
@@ -94,11 +106,11 @@
     <tr>
       <td>#{{ i["numero"] }}</td>
       <td>{{ i["nome"] }}</td>
-      <td>{{ i["cliente"] }}</td>
+      <td>{{ i["cliente"]["id"] }}</td>
       <td>{{ i["durata"]["inizio"][8:10] }}/{{ i["durata"]["inizio"][5:7] }}/{{ i["durata"]["inizio"][0:4] }}</td>
-      <td>20</td>
+      <td>{{ i["specifiche"]["ore_lavorate"] }}</td>
       <td>{{ i["specifiche"]["budget_euro"] }}</td>
-      <td>4000</td>
+      <td>{{ i["specifiche"]["euro_spesi"] }}</td>
     </tr>
     {% endfor %}
   </tbody>
@@ -267,11 +279,19 @@ function f_guadagno() {
 </div>
   </div>
 {% for i in dati %}
+  {% if pagina|string == i["id"]|string %}
+  <div class="tab-pane fade show active" id="{{ i["id"] }}-tab-pane" role="tabpanel" aria-labelledby="{{ i["id"] }}-tab" tabindex="0">
+  {% else %}
   <div class="tab-pane fade" id="{{ i["id"] }}-tab-pane" role="tabpanel" aria-labelledby="{{ i["id"] }}-tab" tabindex="0">
+  {% endif %}
+  <h5 class="my-2"><strong>{{ i["nome"] }} - {{ i["cliente"]["nome"] }}</strong>
 
-  <h5 class="my-2"><strong>{{ i["nome"] }} - {{ i["cliente"] }}</strong></h5>
+  <button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#commesseModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ i | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Modifica</button>
+
+  </h5>
   <p><strong>Note: </strong>{{ i["note"] }}</p>
 
+  {% if gestione %}
   <div class="table-responsive">
   <table class="table">
     <thead>
@@ -284,32 +304,42 @@ function f_guadagno() {
         <th scope="col">Ore disponibili</th>
         {% endif %}
         <th scope="col">Project Manager</th>
-        <th scope="col">Azioni</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <th scope="row">{{ i["durata"]["inizio"][8:10] }}/{{ i["durata"]["inizio"][5:7] }}/{{ i["durata"]["inizio"][0:4] }}</th>
+        {% if i["specifiche"]["budget_ore"] == 0 %}
+        <td>--</td>
+        {% else %}
         <td>{{ i["specifiche"]["budget_ore"] }}</td>
-        {% if gestione %}
-        <td>{{ i["specifiche"]["budget_euro"] }}</td>
-        <td>4000</td>
-        <td>180</td>
         {% endif %}
-        <td>{{ i["specifiche"]["project_manager"] }}</td>
-        <td><button type="button" class="btn btn-warning btn-sm">Modifica</button></td>
+        {% if i["specifiche"]["budget_euro"] == 0 %}
+        <td>--</td>
+        <td>--</td>
+        {% else %}
+        <td>{{ i["specifiche"]["budget_euro"] }}</td>
+        <td>{{ i["specifiche"]["budget_euro"] - i["specifiche"]["euro_spesi"] }}</td>
+        {% endif %}
+
+        {% if i["specifiche"]["budget_ore"] == 0 %}
+        <td>--</td>
+        {% else %}
+        <td>{{ i["specifiche"]["budget_ore"] - i["specifiche"]["ore_lavorate"] }}</td>
+        {% endif %}
+
+        <td>{{ i["specifiche"]["project_manager"]["nome"] }}</td>
       </tr>
     </tbody>
   </table>
   </div>
+  {% endif %}
 
-  <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="">Inserisci</button>
-
+  <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ y | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Inserisci</button>
   <div class="table-responsive">
   <table class="table">
     <thead>
       <tr>
-        <th scope="col">#</th>
         <th scope="col">Data inserimento</th>
         <th scope="col">Collaboratore</th>
         <th scope="col">Ore</th>
@@ -323,7 +353,6 @@ function f_guadagno() {
     <tbody>
     {% for y in i["lavorazioni"] %}
       <tr>
-        <th scope="row">{{ y["id"] }}</th>
         <td>{{ y["durata"]["data"][8:10] }}/{{ y["durata"]["data"][5:7] }}/{{ y["durata"]["data"][0:4] }}</td>
         <td>{{ y["collaboratore"]["nome"] }}
         {% if y["durata"]["trasferta"] %}
@@ -333,9 +362,12 @@ function f_guadagno() {
         <td>{{ y["durata"]["ore"] }}</td>
         <td>{{ y["tipo"]["nome"] }}</td>
         {% if gestione %}
-        <td>120</td>
+        <td>{{ y["costo"] }}</td>
         {% endif %}
-        <td><button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ y | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Modifica</button></td>
+        <td>
+        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ y | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Modifica</button>
+        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#eliminalavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ y | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Elimina</button>
+        </td>
       </tr>
       {% endfor %}
     </tbody>
@@ -346,9 +378,97 @@ function f_guadagno() {
 {% endfor %}
 </div>
 
+<!--Modal per le commesse-->
+<div class="modal fade" id="commesseModal" tabindex="-1" aria-labelledby="commesseModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="commesseModalLabel">Inserisci nuova commessa</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="inserisci_commessa">
+          <input type="hidden" id="id_commessa" name="id_commessa" value="">
+          <div class="row">
+          <div class="col">
+          <div class="mb-3">
+            <label for="nome" class="col-form-label"><strong>Nome Commessa</strong></label>
+            <input type="text" class="form-control" id="nome" name="nome">
+          </div>
+          <div class="mb-3">
+            <label for="cliente" class="col-form-label"><strong>Cliente</strong></label>
+            <select class="form-select" aria-label="Cliente" id="cliente" name="cliente">
+              {% for i in clienti %}
+              <option value="{{ i[0] }}">{{ i[1] }}</option>
+              {% endfor %}
+            </select>
+            <div id="clienteHelp" class="form-text">Se commessa interna selezionare "MCP Consulting"</div>
+          </div>
+          <div class="mb-3">
+            <label for="project_manager" class="col-form-label"><strong>Project Manager</strong></label>
+            <select class="form-select" aria-label="Project Manager" id="project_manager" name="project_manager">
+              {% for i in utenti %}
+              {% if i.collaboratore["ruolo"] == "manager" %}
+              <option value="{{i.id}}">{{i.anagrafica["nome"]}} {{i.anagrafica["cognome"]}}</option>
+              {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+          <label class="col-form-label"><strong>Tipologia Lavorazioni</strong></label>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+              <label class="form-check-label" for="flexCheckDefault">
+                Supporti
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+              <label class="form-check-label" for="flexCheckDefault">
+                Piping
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked">
+              <label class="form-check-label" for="flexCheckChecked">
+                Stress Analysis
+              </label>
+            </div>
+          </div>
+          </div>
+          <div class="col">
+          <div class="mb-3">
+            <label for="data" class="col-form-label"><strong>Data apertura commessa</strong></label>
+            <input type="date" class="form-control" id="data" name="data">
+          </div>
+          <div class="mb-3">
+            <label for="ore" class="col-form-label"><strong>Ore disponibili</strong></label>
+            <input type="text" class="form-control" id="ore" name="ore">
+            <div id="oreHelp" class="form-text">Inserisci il numero di ore, lascia vuoto se non c'è un limite</div>
+          </div>
+          <div class="mb-3">
+            <label for="euro" class="col-form-label"><strong>Budget disponibile</strong></label>
+            <input type="text" class="form-control" id="euro" name="euro">
+            <div id="euroHelp" class="form-text">Inserisci il numero senza simbolo di €, lascia vuoto se non c'è budget</div>
+          </div>
+          <div class="mb-3">
+            <label for="note" class="col-form-label"><strong>Note</strong></label>
+            <input type="text" class="form-control" id="note" name="note">
+            <div id="noteHelp" class="form-text">Campo libero</div>
+          </div>
+          </div>
+          </div>
+          <button type="submit" class="btn btn-warning btn-sm">Inserisci</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!--Modal per le lavorazioni-->
 <div class="modal fade" id="lavorazioniModal" tabindex="-1" aria-labelledby="lavorazioniModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h1 class="modal-title fs-5" id="lavorazioniModalLabel">Inserisci nuova lavorazione</h1>
@@ -369,8 +489,8 @@ function f_guadagno() {
             <div id="oreHelp" class="form-text">Inserisci il numero es: "3.5" = 3h e 30min</div>
           </div>
           <div class="mb-3">
-            <label for="message-text" class="col-form-label">Tipo Lavorazione:</label>
-            <select class="form-select" aria-label="Tipo Lavorazione" id="tipo" name="tipo">
+            <label for="message-text" class="col-form-label">Tipologia:</label>
+            <select class="form-select" aria-label="Tipologia" id="tipo" name="tipo">
               <option value="1">Supporti</option>
               <option value="2">Piping</option>
               <option value="3">Stress Analysis</option>
@@ -388,6 +508,28 @@ function f_guadagno() {
     </div>
   </div>
 </div>
+
+<!--Modal eliminare lavorazioni-->
+<div class="modal fade" id="eliminalavorazioniModal" tabindex="-1" aria-labelledby="eliminalavorazioniModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="eliminalavorazioniModalLabel">Elimina</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>ATTENZIONE: </strong>Non sarà possibile recuperare i dati eliminati!</p>
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="elimina_lavorazione">
+          <input type="hidden" id="id_commessa" name="id_commessa" value="">
+          <input type="hidden" id="id_lavorazione" name="id_lavorazione" value="">
+          <button type="submit" class="btn btn-danger btn-sm">Elimina</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <script>
 const lavorazioniModal = document.getElementById('lavorazioniModal')
@@ -411,7 +553,7 @@ lavorazioniModal.addEventListener('show.bs.modal', event => {
   const trasferta = lavorazioniModal.querySelector('#trasferta')
   in_id_commessa.value = `${id_commessa}`
   if (tmp_dati == "") {
-  modalTitle.textContent = `Inserisci nuova lavorazione`
+  modalTitle.textContent = `Inserisci`
   id_form.value = `inserisci_lavorazione`
   id_lavorazione.value = ``
   data.value = ``
@@ -420,7 +562,7 @@ lavorazioniModal.addEventListener('show.bs.modal', event => {
   trasferta.checked = false
 
   } else {
-  modalTitle.textContent = `Modifica Lavorazione #${JSON.parse(tmp_dati)["id"]}`
+  modalTitle.textContent = `Modifica #${JSON.parse(tmp_dati)["id"]}`
   id_form.value = `modifica_lavorazione`
   id_lavorazione.value = `${JSON.parse(tmp_dati)["id"]}`
   data.value = `${JSON.parse(tmp_dati)["durata"]["data"]}`
@@ -430,6 +572,83 @@ lavorazioniModal.addEventListener('show.bs.modal', event => {
 
   }
 })
+
+const eliminalavorazioniModal = document.getElementById('eliminalavorazioniModal')
+eliminalavorazioniModal.addEventListener('show.bs.modal', event => {
+  // Button that triggered the modal
+  const button = event.relatedTarget
+  // Extract info from data-bs-* attributes
+  const id_commessa = button.getAttribute('data-bs-id_commessa')
+  const tmp_dati = button.getAttribute('data-bs-tmp_dati')
+  // If necessary, you could initiate an AJAX request here
+  // and then do the updating in a callback.
+  //
+  // Update the modal's content.
+  const modalTitle = eliminalavorazioniModal.querySelector('.modal-title')
+  const in_id_commessa = eliminalavorazioniModal.querySelector('#id_commessa')
+  const id_lavorazione = eliminalavorazioniModal.querySelector('#id_lavorazione')
+  in_id_commessa.value = `${id_commessa}`
+  modalTitle.textContent = `Elimina`
+  id_lavorazione.value = `${JSON.parse(tmp_dati)["id"]}`
+})
+
+const commesseModal = document.getElementById('commesseModal')
+commesseModal.addEventListener('show.bs.modal', event => {
+  // Button that triggered the modal
+  const button = event.relatedTarget
+  // Extract info from data-bs-* attributes
+  const id_commessa = button.getAttribute('data-bs-id_commessa')
+  const tmp_dati = button.getAttribute('data-bs-tmp_dati')
+  // If necessary, you could initiate an AJAX request here
+  // and then do the updating in a callback.
+  //
+  // Update the modal's content.
+  const modalTitle = commesseModal.querySelector('.modal-title')
+  const id_form = commesseModal.querySelector('#id_form')
+  const in_id_commessa = commesseModal.querySelector('#id_commessa')
+  const nome = commesseModal.querySelector('#nome')
+  const cliente = commesseModal.querySelector('#cliente')
+  const data = commesseModal.querySelector('#data')
+  const ore = commesseModal.querySelector('#ore')
+  const euro = commesseModal.querySelector('#euro')
+  const project_manager = commesseModal.querySelector('#project_manager')
+  const note = commesseModal.querySelector('#note')
+  in_id_commessa.value = `${id_commessa}`
+  if (tmp_dati == "") {
+  modalTitle.textContent = `Inserisci nuova commessa`
+  id_form.value = `inserisci_commessa`
+  nome.value = ``
+  cliente.value = `1`
+  data.value = ``
+  ore.value = ``
+  euro.value = ``
+  project_manager.value = `1`
+  note.value = ``
+
+  } else {
+  modalTitle.textContent = `Modifica commessa #${JSON.parse(tmp_dati)["numero"]}`
+  id_form.value = `modifica_commessa`
+  id_commessa.value = `${JSON.parse(tmp_dati)["id"]}`
+  nome.value = `${JSON.parse(tmp_dati)["nome"]}`
+  cliente.value = `${JSON.parse(tmp_dati)["cliente"]["id"]}`
+  data.value = `${JSON.parse(tmp_dati)["durata"]["inizio"]}`
+  ore.value = `${JSON.parse(tmp_dati)["specifiche"]["budget_ore"]}`
+  euro.value = `${JSON.parse(tmp_dati)["specifiche"]["budget_euro"]}`
+  project_manager.value = `${JSON.parse(tmp_dati)["specifiche"]["project_manager"]["id"]}`
+  note.value = `${JSON.parse(tmp_dati)["note"]}`
+
+  }
+})
+
+const toastTrigger = document.getElementById('liveToastBtn')
+const toastLiveExample = document.getElementById('liveToast')
+if (toastTrigger) {
+  toastTrigger.addEventListener('click', () => {
+    const toast = new bootstrap.Toast(toastLiveExample)
+
+    toast.show()
+  })
+}
 </script>
 
 {% endblock %}

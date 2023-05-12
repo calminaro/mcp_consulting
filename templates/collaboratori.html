@@ -48,14 +48,12 @@
 
 {% with messages = get_flashed_messages() %}
   {% if messages %}
-    <ul class=flashes>
     {% for message in messages %}
-      <div class="my-4 mx-5 alert alert-warning alert-dismissible fade show" role="alert">
+      <div class="my-4 alert alert-warning alert-dismissible fade show" role="alert">
         {{ message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
     {% endfor %}
-    </ul>
   {% endif %}
 {% endwith %}
 
@@ -79,7 +77,7 @@
       <th scope="row">{{i.username}}</th>
       <td>{{i.anagrafica["nome"]}} {{i.anagrafica["cognome"]}}</td>
       <td>{{i.collaboratore["ruolo"]}}</td>
-      <td><a href="">Modifica</a></td>
+      <td><button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#dettagli_collabModal">Dettagli</button></td>
     </tr>
   {% endfor %}
   </tbody>
@@ -88,7 +86,7 @@
 
 <!-- Modal -->
 <div class="modal fade" id="nuovo_collabModal" tabindex="-1" aria-labelledby="nuovo_collabModal" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
         <h1 class="modal-title fs-5" id="nuovo_collabModal">Nuovo Collaboratore</h1>
@@ -97,18 +95,25 @@
       <div class="modal-body">
         <form method="post">
           <input type="hidden" id="id_form" name="id_form" value="nuovo_utente">
+          <div class="row">
+          <div class="col">
           <div class="mb-3">
             <label for="nome" class="form-label">Nome</label>
             <input type="text" class="form-control" id="nome" name="nome">
           </div>
+          </div>
+          <div class="col">
           <div class="mb-3">
             <label for="cognome" class="form-label">Cognome</label>
             <input type="text" class="form-control" id="cognome" name="cognome">
           </div>
+          </div>
+          </div>
+          <div class="row">
+          <div class="col">
           <div class="mb-3">
             <label for="username" class="form-label">Username</label>
-            <input type="text" class="form-control" id="username" name="username" aria-describedby="usernameHelp">
-            <div id="usernameHelp" class="form-text">Ricorda tipo Fabio Cini = FCI</div>
+            <input type="text" class="form-control" id="username" name="username">
           </div>
           <div class="mb-3">
             <label for="mail" class="form-label">Mail</label>
@@ -118,6 +123,8 @@
             <label for="passwd" class="form-label">Password</label>
             <input type="password" class="form-control" id="passwd" name="passwd">
           </div>
+          </div>
+          <div class="col">
           <label for="ruolo" class="form-label">Ruolo</label>
           <select class="form-select mb-3" aria-label="Tipo Account" id="ruolo" name="ruolo">
             <option selected value="collaboratore">Collaboratore</option>
@@ -127,6 +134,67 @@
             <label for="costo" class="form-label">Costo orario</label>
             <input type="text" class="form-control" id="costo" name="costo" aria-describedby="costoHelp">
             <div id="costoHelp" class="form-text">Inserire solo il valore numerico senza simbolo di €</div>
+          </div>
+          </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Crea Account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="dettagli_collabModal" tabindex="-1" aria-labelledby="dettagli_collabModal" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="dettagli_collabModal">Dettagli Collaboratore</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="nuovo_utente">
+          <div class="row">
+          <div class="col">
+          <div class="mb-3">
+            <label for="nome" class="form-label">Nome: </label>
+            <label for="nome" class="form-label">Alberto</label>
+          </div>
+          </div>
+          <div class="col">
+          <div class="mb-3">
+            <label for="cognome" class="form-label">Cognome: </label>
+            <label for="cognome" class="form-label">Calmini</label>
+          </div>
+          </div>
+          </div>
+          <div class="row">
+          <div class="col">
+          <div class="mb-3">
+            <label for="username" class="form-label">Username: </label>
+            <input type="text" class="form-control" id="username" name="username">
+          </div>
+          <div class="mb-3">
+            <label for="mail" class="form-label">Mail: </label>
+            <label for="cognome" class="form-label">albycalmini99@gmail.com</label>
+          </div>
+          <div class="mb-3">
+            <label for="passwd" class="form-label">Password</label>
+            <input type="password" class="form-control" id="passwd" name="passwd">
+          </div>
+          </div>
+          <div class="col">
+          <label for="ruolo" class="form-label">Ruolo</label>
+          <select class="form-select mb-3" aria-label="Tipo Account" id="ruolo" name="ruolo">
+            <option selected value="collaboratore">Collaboratore</option>
+            <option value="manager">Manager</option>
+          </select>
+          <div class="mb-3">
+            <label for="costo" class="form-label">Costo orario</label>
+            <input type="text" class="form-control" id="costo" name="costo" aria-describedby="costoHelp">
+            <div id="costoHelp" class="form-text">Inserire solo il valore numerico senza simbolo di €</div>
+          </div>
+          </div>
           </div>
           <button type="submit" class="btn btn-primary">Crea Account</button>
         </form>
