@@ -29,6 +29,11 @@
       Clienti
     </a>
   </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("report") }}">
+      Report
+    </a>
+  </li>
   {% endif %}
   <hr>
   <li class="nav-item">
@@ -48,18 +53,24 @@
 
 <h2><strong>Storico commesse</strong></h2>
 
+<nav aria-label="Page navigation example">
+  <ul class="pagination pagination-sm justify-content-end">
+    <li class="page-item"><a class="page-link" href="#">2020</a></li>
+    <li class="page-item"><a class="page-link" href="#">2021</a></li>
+    <li class="page-item"><a class="page-link" href="#">2022</a></li>
+    <li class="page-item active"><a class="page-link" href="#">2023</a></li>
+  </ul>
+</nav>
+
 <div class="table-responsive">
 <table class="table" id="storico">
   <thead>
     <tr>
-      <th scope="col">N° Commessa<br><input type="text" class="form-control" id="s_id" onkeyup="f_id()" placeholder=""></th>
-      <th scope="col">Nome<br><input type="text" class="form-control" id="s_nome" onkeyup="f_nome()" placeholder=""></th>
-      <th scope="col">Cliente<br><input type="text" class="form-control" id="s_cliente" onkeyup="f_cliente()" placeholder=""></th>
-      <th scope="col">Data apertura<br><input type="text" class="form-control" id="s_data_a" onkeyup="f_data_a()" placeholder=""></th>
-      <th scope="col">Data chiusura<br><input type="text" class="form-control" id="s_data_c" onkeyup="f_data_c()" placeholder=""></th>
-      <th scope="col">Ore lavorate<br><input type="text" class="form-control" id="s_ore" onkeyup="f_ore()" placeholder=""></th>
-      <th scope="col">Budget [€]<br><input type="text" class="form-control" id="s_budget" onkeyup="f_budget()" placeholder=""></th>
-      <th scope="col">Guadagno [€]<br><input type="text" class="form-control" id="s_guadagno" onkeyup="f_guadagno()" placeholder=""></th>
+      <th scope="col">N° Commessa<br><input type="text" class="form-control form-control-sm" id="s_id" onkeyup="f_id()" placeholder=""></th>
+      <th scope="col">Nome<br><input type="text" class="form-control form-control-sm" id="s_nome" onkeyup="f_nome()" placeholder=""></th>
+      <th scope="col">Cliente<br><input type="text" class="form-control form-control-sm" id="s_cliente" onkeyup="f_cliente()" placeholder=""></th>
+      <th scope="col">Data apertura<br><input type="text" class="form-control form-control-sm" id="s_data_a" onkeyup="f_data_a()" placeholder=""></th>
+      <th scope="col">Data chiusura<br><input type="text" class="form-control form-control-sm" id="s_data_c" onkeyup="f_data_c()" placeholder=""></th>
       <th scope="col">Azioni</th>
     </tr>
   </thead>
@@ -70,9 +81,6 @@
       <td>Dromont</td>
       <td>21/02/2023</td>
       <td>24/04/2023</td>
-      <td>20</td>
-      <td>5000</td>
-      <td>8000</td>
       <td><a href="{{ url_for("dettaglio_storico") }}">Dettaglio</a></td>
     </tr>
     <tr>
@@ -81,9 +89,6 @@
       <td>ST-Agrate</td>
       <td>21/03/2023</td>
       <td>24/05/2023</td>
-      <td>18</td>
-      <td>2000</td>
-      <td>1000</td>
       <td><a href="{{ url_for("dettaglio_storico") }}">Dettaglio</a></td>
     </tr>
     <tr>
@@ -92,9 +97,6 @@
       <td></td>
       <td>19/02/2023</td>
       <td>28/04/2023</td>
-      <td>15</td>
-      <td>4000</td>
-      <td>7000</td>
       <td><a href="{{ url_for("dettaglio_storico") }}">Dettaglio</a></td>
     </tr>
   </tbody>
@@ -202,72 +204,6 @@ function f_data_c() {
   // Loop through all table rows, and hide those who don't match the search query
   for (i = 0; i < tr.length; i++) {
     td = tr[i].getElementsByTagName("td")[4];
-    if (td) {
-      txtValue = td.textContent || td.innerText;
-      if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        tr[i].style.display = "";
-      } else {
-        tr[i].style.display = "none";
-      }
-    }
-  }
-}
-
-function f_ore() {
-  // Declare variables
-  var input, filter, table, tr, td, i, txtValue;
-  input = document.getElementById("s_ore");
-  filter = input.value.toUpperCase();
-  table = document.getElementById("storico");
-  tr = table.getElementsByTagName("tr");
-
-  // Loop through all table rows, and hide those who don't match the search query
-  for (i = 0; i < tr.length; i++) {
-    td = tr[i].getElementsByTagName("td")[5];
-    if (td) {
-      txtValue = td.textContent || td.innerText;
-      if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        tr[i].style.display = "";
-      } else {
-        tr[i].style.display = "none";
-      }
-    }
-  }
-}
-
-function f_budget() {
-  // Declare variables
-  var input, filter, table, tr, td, i, txtValue;
-  input = document.getElementById("s_budget");
-  filter = input.value.toUpperCase();
-  table = document.getElementById("storico");
-  tr = table.getElementsByTagName("tr");
-
-  // Loop through all table rows, and hide those who don't match the search query
-  for (i = 0; i < tr.length; i++) {
-    td = tr[i].getElementsByTagName("td")[6];
-    if (td) {
-      txtValue = td.textContent || td.innerText;
-      if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        tr[i].style.display = "";
-      } else {
-        tr[i].style.display = "none";
-      }
-    }
-  }
-}
-
-function f_guadagno() {
-  // Declare variables
-  var input, filter, table, tr, td, i, txtValue;
-  input = document.getElementById("s_guadagno");
-  filter = input.value.toUpperCase();
-  table = document.getElementById("storico");
-  tr = table.getElementsByTagName("tr");
-
-  // Loop through all table rows, and hide those who don't match the search query
-  for (i = 0; i < tr.length; i++) {
-    td = tr[i].getElementsByTagName("td")[7];
     if (td) {
       txtValue = td.textContent || td.innerText;
       if (txtValue.toUpperCase().indexOf(filter) > -1) {

@@ -11,7 +11,7 @@
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link active" aria-current="page"  href="{{ url_for("storico") }}">
+    <a class="nav-link" href="{{ url_for("storico") }}">
       Storico
     </a>
   </li>
@@ -30,7 +30,7 @@
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("report") }}">
+    <a class="nav-link active" aria-current="page" href="{{ url_for("report") }}">
       Report
     </a>
   </li>
@@ -51,18 +51,23 @@
 
 {% block corpo %}
 
-<nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{{ url_for("storico") }}">Storico</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Dettaglio commessa X</li>
-  </ol>
-</nav>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <div class="my-4 mx-5 alert alert-warning alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
 
-<h2><strong>Dettaglio commessa X</strong></h2>
+<h2><strong>Report</strong></h2>
 <div class="text-center">
 <img src="/static/cat.png" class="img-fluid" alt="...">
 <p>Questa pagina ancora non esiste :)</p>
 </div>
-
 
 {% endblock %}
