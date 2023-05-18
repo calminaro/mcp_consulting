@@ -54,15 +54,97 @@
 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{{ url_for("storico") }}">Storico</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Dettaglio commessa X</li>
+    <li class="breadcrumb-item active" aria-current="page">Dettaglio Commessa #{{ commessa["numero"] }}</li>
   </ol>
 </nav>
 
-<h2><strong>Dettaglio commessa X</strong></h2>
-<div class="text-center">
-<img src="/static/cat.png" class="img-fluid" alt="...">
-<p>Questa pagina ancora non esiste :)</p>
+<h5 class="my-2"><strong>#{{ commessa["numero"] }} - {{ commessa["nome"] }} - {{ commessa["cliente"]["nome"] }}</strong>
+<a type="button" class="btn btn-warning btn-sm" href="{{ url_for("crea_report", id_commessa=commessa["id"]) }}">Scarica report Excel</a>
+</h5>
+
+<p><strong>Tipologia: </strong>
+{% for i in commessa["specifiche"]["tipologia"] %}
+  {{ i["nome"] }}
+{% endfor %}
+
+</p>
+<p><strong>Note: </strong>{{ commessa["note"] }}</p>
+
+<div class="table-responsive">
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Data apertura</th>
+      <th scope="col">Monte ore contratto</th>
+      <th scope="col">Budget [€]</th>
+      <th scope="col">Guadagno [€]</th>
+      <th scope="col">Ore disponibili</th>
+      <th scope="col">Project Manager</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">{{ commessa["durata"]["inizio"][8:10] }}/{{ commessa["durata"]["inizio"][5:7] }}/{{ commessa["durata"]["inizio"][0:4] }}</th>
+          {% if commessa["specifiche"]["budget_ore"] == 0 %}
+          <td>--</td>
+          {% else %}
+          <td>{{ commessa["specifiche"]["budget_ore"] }}</td>
+          {% endif %}
+          {% if commessa["specifiche"]["budget_euro"] == 0 %}
+          <td>--</td>
+          <td>--</td>
+          {% else %}
+          <td>{{ commessa["specifiche"]["budget_euro"] }}</td>
+          <td>{{ commessa["specifiche"]["budget_euro"] - commessa["specifiche"]["euro_spesi"] }}</td>
+          {% endif %}
+
+          {% if commessa["specifiche"]["budget_ore"] == 0 %}
+          <td>--</td>
+          {% else %}
+          <td>{{ commessa["specifiche"]["budget_ore"] - commessa["specifiche"]["ore_lavorate"] }}</td>
+          {% endif %}
+
+          <td>{{ commessa["specifiche"]["project_manager"]["nome"] }}</td>
+    </tr>
+  </tbody>
+</table>
 </div>
+
+<hr>
+
+<div class="table-responsive">
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Data inserimento</th>
+      <th scope="col">Collaboratore</th>
+      <th scope="col">Ore</th>
+      <th scope="col">Tipologia</th>
+      {% if gestione %}
+      <th scope="col">Costo</th>
+      {% endif %}
+    </tr>
+  </thead>
+  <tbody>
+  {% for y in commessa["lavorazioni"] %}
+    <tr>
+      <td>{{ y["durata"]["data"][8:10] }}/{{ y["durata"]["data"][5:7] }}/{{ y["durata"]["data"][0:4] }}</td>
+      <td>{{ y["collaboratore"]["nome"] }}
+      {% if y["durata"]["trasferta"] %}
+      <span class="badge rounded-pill text-bg-info">Trasferta</span>
+      {% endif %}
+      </td>
+      <td>{{ y["durata"]["ore"] }}</td>
+      <td>{{ y["tipo"]["nome"] }}</td>
+      {% if gestione %}
+      <td>{{ y["costo"] }}</td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
 
 
 {% endblock %}

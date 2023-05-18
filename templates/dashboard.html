@@ -53,10 +53,10 @@
 
 <h2><strong>Commesse attive</strong></h2>
 
-{% with messages = get_flashed_messages() %}
+{% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    {% for message in messages %}
-      <div class="my-2 alert alert-warning alert-dismissible fade show" role="alert">
+    {% for category, message in messages %}
+      <div class="my-2 alert alert-{{ category }} alert-dismissible fade show" role="alert">
         {{ message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
@@ -74,13 +74,15 @@
     {% endif %}
   </li>
 {% for i in dati %}
-  <li class="nav-item" role="presentation">
-  {% if pagina|string == i["id"]|string %}
-    <button class="nav-link active" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="true">#{{ i["numero"] }}</button>
-  {% else %}
-    <button class="nav-link" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="false">#{{ i["numero"] }}</button>
+  {% if not i["durata"]["fine"] %}
+    <li class="nav-item" role="presentation">
+    {% if pagina|string == i["id"]|string %}
+      <button class="nav-link active" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="true">#{{ i["numero"] }}</button>
+    {% else %}
+      <button class="nav-link" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="false">#{{ i["numero"] }}</button>
     {% endif %}
-  </li>
+    </li>
+  {% endif %}
 {% endfor %}
 </ul>
 
@@ -94,7 +96,7 @@
   <button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#commesseModal" data-bs-tmp_dati="">Nuova Commessa</button>
 
 <div class="table-responsive">
-<table class="table" id="storico">
+<table class="table" id="commesse_attive">
   <thead>
     <tr>
       <th scope="col">N° Commessa<br><input type="text" class="form-control form-control-sm" id="s_id" onkeyup="f_id()" placeholder=""></th>
@@ -107,6 +109,7 @@
   </thead>
   <tbody>
     {% for i in dati %}
+    {% if not i["durata"]["fine"] %}
     <tr>
       <td>#{{ i["numero"] }}</td>
       <td>{{ i["nome"] }}</td>
@@ -115,6 +118,7 @@
       <td>{{ i["specifiche"]["budget_euro"] }}</td>
       <td>{{ i["specifiche"]["euro_spesi"] }}</td>
     </tr>
+    {% endif %}
     {% endfor %}
   </tbody>
 </table>
@@ -127,7 +131,7 @@ function f_id() {
   var input, filter, table, tr, td, i, txtValue;
   input = document.getElementById("s_id");
   filter = input.value.toUpperCase();
-  table = document.getElementById("storico");
+  table = document.getElementById("commesse_attive");
   tr = table.getElementsByTagName("tr");
 
   // Loop through all table rows, and hide those who don't match the search query
@@ -149,7 +153,7 @@ function f_nome() {
   var input, filter, table, tr, td, i, txtValue;
   input = document.getElementById("s_nome");
   filter = input.value.toUpperCase();
-  table = document.getElementById("storico");
+  table = document.getElementById("commesse_attive");
   tr = table.getElementsByTagName("tr");
 
   // Loop through all table rows, and hide those who don't match the search query
@@ -171,7 +175,7 @@ function f_cliente() {
   var input, filter, table, tr, td, i, txtValue;
   input = document.getElementById("s_cliente");
   filter = input.value.toUpperCase();
-  table = document.getElementById("storico");
+  table = document.getElementById("commesse_attive");
   tr = table.getElementsByTagName("tr");
 
   // Loop through all table rows, and hide those who don't match the search query
@@ -193,7 +197,7 @@ function f_data_a() {
   var input, filter, table, tr, td, i, txtValue;
   input = document.getElementById("s_data_a");
   filter = input.value.toUpperCase();
-  table = document.getElementById("storico");
+  table = document.getElementById("commesse_attive");
   tr = table.getElementsByTagName("tr");
 
   // Loop through all table rows, and hide those who don't match the search query
@@ -215,7 +219,7 @@ function f_budget() {
   var input, filter, table, tr, td, i, txtValue;
   input = document.getElementById("s_budget");
   filter = input.value.toUpperCase();
-  table = document.getElementById("storico");
+  table = document.getElementById("commesse_attive");
   tr = table.getElementsByTagName("tr");
 
   // Loop through all table rows, and hide those who don't match the search query
@@ -237,7 +241,7 @@ function f_guadagno() {
   var input, filter, table, tr, td, i, txtValue;
   input = document.getElementById("s_guadagno");
   filter = input.value.toUpperCase();
-  table = document.getElementById("storico");
+  table = document.getElementById("commesse_attive");
   tr = table.getElementsByTagName("tr");
 
   // Loop through all table rows, and hide those who don't match the search query
@@ -260,113 +264,114 @@ function f_guadagno() {
 </div>
   </div>
 {% for i in dati %}
-  {% if pagina|string == i["id"]|string %}
-  <div class="tab-pane fade show active" id="{{ i["id"] }}-tab-pane" role="tabpanel" aria-labelledby="{{ i["id"] }}-tab" tabindex="0">
-  {% else %}
-  <div class="tab-pane fade" id="{{ i["id"] }}-tab-pane" role="tabpanel" aria-labelledby="{{ i["id"] }}-tab" tabindex="0">
+  {% if not i["durata"]["fine"] %}
+    {% if pagina|string == i["id"]|string %}
+    <div class="tab-pane fade show active" id="{{ i["id"] }}-tab-pane" role="tabpanel" aria-labelledby="{{ i["id"] }}-tab" tabindex="0">
+    {% else %}
+    <div class="tab-pane fade" id="{{ i["id"] }}-tab-pane" role="tabpanel" aria-labelledby="{{ i["id"] }}-tab" tabindex="0">
+    {% endif %}
+    <h5 class="my-2"><strong>{{ i["nome"] }} - {{ i["cliente"]["nome"] }}</strong>
+
+    <div class="btn-group" role="group" aria-label="Basic example">
+      <button type="button" class="btn btn-success btn-sm my-2" data-bs-toggle="modal" data-bs-target="#chiudi_commesseModal" data-bs-id_commessa="{{ i["id"] }}">Chiudi</button>
+      <button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#commesseModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ i | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Modifica</button>
+      <button type="button" class="btn btn-danger btn-sm my-2" data-bs-toggle="modal" data-bs-target="#eliminacommesseModal" data-bs-id_commessa="{{ i["id"] }}">Elimina</button>
+    </div>
+    </h5>
+    <p><strong>Tipologia: </strong>
+    {% for j in i["specifiche"]["tipologia"] %}
+      {{ j["nome"] }}
+    {% endfor %}
+
+    </p>
+    <p><strong>Note: </strong>{{ i["note"] }}</p>
+
+    {% if gestione %}
+    <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Data apertura</th>
+          <th scope="col">Monte ore contratto</th>
+          {% if gestione %}
+          <th scope="col">Budget [€]</th>
+          <th scope="col">Guadagno [€]</th>
+          <th scope="col">Ore disponibili</th>
+          {% endif %}
+          <th scope="col">Project Manager</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">{{ i["durata"]["inizio"][8:10] }}/{{ i["durata"]["inizio"][5:7] }}/{{ i["durata"]["inizio"][0:4] }}</th>
+          {% if i["specifiche"]["budget_ore"] == 0 %}
+          <td>--</td>
+          {% else %}
+          <td>{{ i["specifiche"]["budget_ore"] }}</td>
+          {% endif %}
+          {% if i["specifiche"]["budget_euro"] == 0 %}
+          <td>--</td>
+          <td>--</td>
+          {% else %}
+          <td>{{ i["specifiche"]["budget_euro"] }}</td>
+          <td>{{ i["specifiche"]["budget_euro"] - i["specifiche"]["euro_spesi"] }}</td>
+          {% endif %}
+
+          {% if i["specifiche"]["budget_ore"] == 0 %}
+          <td>--</td>
+          {% else %}
+          <td>{{ i["specifiche"]["budget_ore"] - i["specifiche"]["ore_lavorate"] }}</td>
+          {% endif %}
+
+          <td>{{ i["specifiche"]["project_manager"]["nome"] }}</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    {% endif %}
+
+    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ y | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Inserisci</button>
+    <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Data inserimento</th>
+          <th scope="col">Collaboratore</th>
+          <th scope="col">Ore</th>
+          <th scope="col">Tipologia</th>
+          {% if gestione %}
+          <th scope="col">Costo</th>
+          {% endif %}
+          <th scope="col">Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for y in i["lavorazioni"] %}
+        <tr>
+          <td>{{ y["durata"]["data"][8:10] }}/{{ y["durata"]["data"][5:7] }}/{{ y["durata"]["data"][0:4] }}</td>
+          <td>{{ y["collaboratore"]["nome"] }}
+          {% if y["durata"]["trasferta"] %}
+          <span class="badge rounded-pill text-bg-info">Trasferta</span>
+          {% endif %}
+          </td>
+          <td>{{ y["durata"]["ore"] }}</td>
+          <td>{{ y["tipo"]["nome"] }}</td>
+          {% if gestione %}
+          <td>{{ y["costo"] }}</td>
+          {% endif %}
+          <td>
+          <div class="btn-group" role="group" aria-label="Azioni">
+          <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ y | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Modifica</button>
+          <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#eliminalavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ y | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Elimina</button>
+          </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    </div>
   {% endif %}
-  <h5 class="my-2"><strong>{{ i["nome"] }} - {{ i["cliente"]["nome"] }}</strong>
-
-  <div class="btn-group" role="group" aria-label="Basic example">
-    <button type="button" class="btn btn-outline-success btn-sm my-2" data-bs-toggle="modal" data-bs-target="#chiudi_commesseModal" data-bs-id_commessa="{{ i["id"] }}">Chiudi</button>
-    <button type="button" class="btn btn-outline-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#commesseModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ i | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Modifica</button>
-    <button type="button" class="btn btn-outline-danger btn-sm my-2" data-bs-toggle="modal" data-bs-target="#eliminacommesseModal" data-bs-id_commessa="{{ i["id"] }}">Elimina</button>
-  </div>
-  </h5>
-  <p><strong>Tipologia: </strong>
-  {% for j in i["specifiche"]["tipologia"] %}
-    {{ j["nome"] }}
-  {% endfor %}
-
-  </p>
-  <p><strong>Note: </strong>{{ i["note"] }}</p>
-
-  {% if gestione %}
-  <div class="table-responsive">
-  <table class="table">
-    <thead>
-      <tr>
-        <th scope="col">Data apertura</th>
-        <th scope="col">Monte ore contratto</th>
-        {% if gestione %}
-        <th scope="col">Budget [€]</th>
-        <th scope="col">Guadagno [€]</th>
-        <th scope="col">Ore disponibili</th>
-        {% endif %}
-        <th scope="col">Project Manager</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <th scope="row">{{ i["durata"]["inizio"][8:10] }}/{{ i["durata"]["inizio"][5:7] }}/{{ i["durata"]["inizio"][0:4] }}</th>
-        {% if i["specifiche"]["budget_ore"] == 0 %}
-        <td>--</td>
-        {% else %}
-        <td>{{ i["specifiche"]["budget_ore"] }}</td>
-        {% endif %}
-        {% if i["specifiche"]["budget_euro"] == 0 %}
-        <td>--</td>
-        <td>--</td>
-        {% else %}
-        <td>{{ i["specifiche"]["budget_euro"] }}</td>
-        <td>{{ i["specifiche"]["budget_euro"] - i["specifiche"]["euro_spesi"] }}</td>
-        {% endif %}
-
-        {% if i["specifiche"]["budget_ore"] == 0 %}
-        <td>--</td>
-        {% else %}
-        <td>{{ i["specifiche"]["budget_ore"] - i["specifiche"]["ore_lavorate"] }}</td>
-        {% endif %}
-
-        <td>{{ i["specifiche"]["project_manager"]["nome"] }}</td>
-      </tr>
-    </tbody>
-  </table>
-  </div>
-  {% endif %}
-
-  <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ y | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Inserisci</button>
-  <div class="table-responsive">
-  <table class="table">
-    <thead>
-      <tr>
-        <th scope="col">Data inserimento</th>
-        <th scope="col">Collaboratore</th>
-        <th scope="col">Ore</th>
-        <th scope="col">Tipologia</th>
-        {% if gestione %}
-        <th scope="col">Costo</th>
-        {% endif %}
-        <th scope="col">Azioni</th>
-      </tr>
-    </thead>
-    <tbody>
-    {% for y in i["lavorazioni"] %}
-      <tr>
-        <td>{{ y["durata"]["data"][8:10] }}/{{ y["durata"]["data"][5:7] }}/{{ y["durata"]["data"][0:4] }}</td>
-        <td>{{ y["collaboratore"]["nome"] }}
-        {% if y["durata"]["trasferta"] %}
-        <span class="badge rounded-pill text-bg-info">Trasferta</span>
-        {% endif %}
-        </td>
-        <td>{{ y["durata"]["ore"] }}</td>
-        <td>{{ y["tipo"]["nome"] }}</td>
-        {% if gestione %}
-        <td>{{ y["costo"] }}</td>
-        {% endif %}
-        <td>
-        <div class="btn-group" role="group" aria-label="Azioni">
-        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ y | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Modifica</button>
-        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#eliminalavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ y | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Elimina</button>
-        </div>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  </div>
-
-  </div>
 {% endfor %}
 </div>
 
@@ -456,6 +461,7 @@ function f_guadagno() {
   </div>
 </div>
 
+<!--Modal per chiudere commesse-->
 <div class="modal fade" id="chiudi_commesseModal" tabindex="-1" aria-labelledby="chiudi_commesseModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -466,7 +472,7 @@ function f_guadagno() {
       <div class="modal-body">
         <p><strong>ATTENZIONE: </strong>Non sarà possibile riaprire una commessa chiusa!</p>
         <form method="post">
-          <input type="hidden" id="id_form" name="id_form" value="inserisci_commessa">
+          <input type="hidden" id="id_form" name="id_form" value="chiudi_commessa">
           <input type="hidden" id="id_commessa" name="id_commessa" value="">
           <div class="mb-3">
             <label for="data" class="col-form-label"><strong>Data chiusura commessa</strong></label>
@@ -713,6 +719,20 @@ eliminacommesseModal.addEventListener('show.bs.modal', event => {
   const in_id_commessa = eliminacommesseModal.querySelector('#id_commessa')
   in_id_commessa.value = `${id_commessa}`
   modalTitle.textContent = `Elimina`
+})
+
+const chiudi_commesseModal = document.getElementById('chiudi_commesseModal')
+chiudi_commesseModal.addEventListener('show.bs.modal', event => {
+  // Button that triggered the modal
+  const button = event.relatedTarget
+  // Extract info from data-bs-* attributes
+  const id_commessa = button.getAttribute('data-bs-id_commessa')
+  // If necessary, you could initiate an AJAX request here
+  // and then do the updating in a callback.
+  //
+  // Update the modal's content.
+  const in_id_commessa = chiudi_commesseModal.querySelector('#id_commessa')
+  in_id_commessa.value = `${id_commessa}`
 })
 
 const toastTrigger = document.getElementById('liveToastBtn')

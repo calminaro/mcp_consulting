@@ -1,8 +1,9 @@
-from flask import Flask, request, render_template, url_for, redirect, flash, Markup, abort
+from flask import Flask, request, render_template, url_for, redirect, flash, Markup, abort, send_file
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 #from flask_mail import Mail, Message
+from openpyxl import Workbook, load_workbook
 from string import ascii_lowercase
 import itertools
 import json
@@ -117,16 +118,25 @@ def get_nome(tipo, tmp_id):
     if tipo == "cliente":
         cur.execute("select nome from clienti where id = ?", [tmp_id])
         cliente = cur.fetchall()
-        nome = cliente[0][0]
+        try:
+            nome = cliente[0][0]
+        except:
+            nome = ""
     elif tipo == "tipo_lavorazione":
         nome = "Altro"
         if int(tmp_id) != 0:
             cur.execute("select nome from tipo_lavorazioni where id = ?", [tmp_id])
             tipo_lavorazione = cur.fetchall()
-            nome = tipo_lavorazione[0][0]
+            try:
+                nome = tipo_lavorazione[0][0]
+            except:
+                nome = ""
     elif tipo == "collaboratore":
         user = User.query.filter_by(id=tmp_id).first()
-        nome = user.anagrafica["nome"] + " " + user.anagrafica["cognome"]
+        try:
+            nome = user.anagrafica["nome"] + " " + user.anagrafica["cognome"]
+        except:
+            nome = ""
     mcpDB.commit()
     mcpDB.close()
     return nome
@@ -157,6 +167,14 @@ def get_costo(tmp_id, durata):
     user_costo = float(user.collaboratore["costo"])
     costo = costo + (tmp_durata*user_costo)
     return costo
+
+def anni_commesse():
+    anni = []
+    commesse = dati_mcp("commesse")
+    for i in commesse:
+        if not str(i["durata"]["inizio"][0:4]) in anni:
+            anni.append(str(i["durata"]["inizio"][0:4]))
+    return anni
 
 def insert_edit_lavorazione(dati):
     mcpDB = sqlite3.connect(mcpDB_path)
@@ -194,7 +212,6 @@ def insert_edit_commessa(dati):
             tipo = "esterna"
         cur.execute("INSERT INTO commesse (numero, tipo, nome, cliente, specifiche, durata, note) VALUES (?,?,?,?,?,?,?)", [numero, tipo, dati["nome"], int(dati["cliente"]), json.dumps(specifiche), json.dumps(durata), dati["note"]])
     elif dati["form"] == "modifica_commessa":
-        print("dovrei modificare: ", dati)
         specifiche = {
             "budget_ore": int(dati["ore"]),
             "budget_euro": int(dati["euro"]),
@@ -212,7 +229,17 @@ def insert_edit_commessa(dati):
             tipo = "esterna"
         cur.execute("UPDATE commesse SET tipo = ?, nome = ?, cliente = ?, specifiche = ?, durata = ?, note = ? WHERE id = ?", [tipo, dati["nome"], int(dati["cliente"]), json.dumps(specifiche), json.dumps(durata), dati["note"], dati["id_commessa"]])
     elif dati["form"] == "elimina_commessa":
-        print("dovrei eliminare: ", dati)
+        cur.execute("DELETE from commesse where id = ?", [int(dati["id_commessa"])])
+        cur.execute("DELETE from lavorazioni where commessa = ?", [int(dati["id_commessa"])])
+    elif dati["form"] == "chiudi_commessa":
+        cur.execute("select durata from commesse where id = ?", [dati["id_commessa"]])
+        commessa = cur.fetchall()
+        tmp_durata = json.loads(commessa[0][0])
+        durata = {
+            "inizio": tmp_durata["inizio"],
+            "fine": dati["data"]
+            }
+        cur.execute("UPDATE commesse SET durata = ? WHERE id = ?", [json.dumps(durata), dati["id_commessa"]])
     mcpDB.commit()
     mcpDB.close()
 
@@ -325,9 +352,9 @@ def dashboard():
                 }
             if dati_validi:
                 insert_edit_lavorazione(tmp_dati)
-                flash("Inserito con successo!")
+                flash("Inserito con successo!", "success")
             else:
-                flash("Dati errati.")
+                flash("Dati errati.", "warning")
             pagina = tmp_dati["id_commessa"]
         elif request.form["id_form"] == "elimina_lavorazione":
             tmp_dati = {
@@ -336,7 +363,7 @@ def dashboard():
                 "id_lavorazione": request.form["id_lavorazione"]
                 }
             insert_edit_lavorazione(tmp_dati)
-            flash("Eliminato con successo!")
+            flash("Eliminato con successo!", "success")
             pagina = tmp_dati["id_commessa"]
         elif request.form["id_form"] == "inserisci_commessa" or request.form["id_form"] == "modifica_commessa":
             tipi = []
@@ -356,6 +383,20 @@ def dashboard():
                 tipi.append(int(request.form["tipo_altro"]))
             except:
                 pass
+            try:
+                anno, mese, giorno = request.form["data"].split('-')
+                tmp = datetime.date(int(anno), int(mese), int(giorno))
+                dati_validi = True
+            except:
+                dati_validi = False
+            try:
+                tmp_ore = int(request.form["ore"])
+            except:
+                tmp_ore = 0
+            try:
+                tmp_euro = int(request.form["euro"])
+            except:
+                tmp_euro = 0
             tmp_dati = {
                 "form": request.form["id_form"],
                 "id_commessa": request.form["id_commessa"],
@@ -364,43 +405,216 @@ def dashboard():
                 "project_manager": request.form["project_manager"],
                 "tipologia": tipi,
                 "data": request.form["data"],
-                "ore": request.form["ore"],
-                "euro": request.form["euro"],
+                "ore": tmp_ore,
+                "euro": tmp_euro,
                 "note": request.form["note"]
                 }
-            insert_edit_commessa(tmp_dati)
-            try:
+            if dati_validi:
+                insert_edit_commessa(tmp_dati)
+                flash("Inserito con successo!", "success")
+            else:
+                flash("Dati errati.", "warning")
+            if tmp_dati["form"] == "modifica_commessa":
                 pagina = tmp_dati["id_commessa"]
-            except:
-                pass
         elif request.form["id_form"] == "elimina_commessa":
             tmp_dati = {
                 "form": request.form["id_form"],
                 "id_commessa": request.form["id_commessa"]
                 }
             insert_edit_commessa(tmp_dati)
-            flash("Eliminato con successo!")
+            flash("Eliminato con successo!", "success")
+        elif request.form["id_form"] == "chiudi_commessa":
+            tmp_dati = {
+                "form": request.form["id_form"],
+                "id_commessa": request.form["id_commessa"],
+                "data": request.form["data"]
+                }
+            insert_edit_commessa(tmp_dati)
+            flash("Chiuso con successo!", "success")
     return render_template("dashboard.html", gestione=gestisce(), dati=dati_mcp("commesse_complete"), clienti=get_clienti(), utenti=User.query.all(), pagina=pagina)
 
 @app.route("/storico")
 @login_required
 def storico():
-    return render_template("storico.html", gestione=gestisce())
+    if not gestisce():
+        return redirect(url_for("dashboard"))
+    anno = False
+    return render_template("storico.html", gestione=gestisce(), dati=dati_mcp("commesse_complete"), anno=anno, anni=anni_commesse())
 
-@app.route("/clienti")
+@app.route("/storico/<string:anno>")
+@login_required
+def storico_anno(anno):
+    if not gestisce():
+        return redirect(url_for("dashboard"))
+    return render_template("storico.html", gestione=gestisce(), dati=dati_mcp("commesse_complete"), anno=anno, anni=anni_commesse())
+
+@app.route("/clienti", methods=("GET", "POST"))
 @login_required
 def clienti():
+    if not gestisce():
+        return redirect(url_for("dashboard"))
+    if request.method == "POST":
+        if request.form["id_form"] == "nuovo_cliente":
+            mcpDB = sqlite3.connect(mcpDB_path)
+            cur = mcpDB.cursor()
+            cur.execute("INSERT INTO clienti (nome) VALUES (?)", [request.form["nome"]])
+            mcpDB.commit()
+            mcpDB.close()
+        elif request.form["id_form"] == "modifica_cliente":
+            mcpDB = sqlite3.connect(mcpDB_path)
+            cur = mcpDB.cursor()
+            cur.execute("UPDATE clienti SET nome = ? WHERE id = ?", [request.form["nome"], int(request.form["id_cliente"])])
+            mcpDB.commit()
+            mcpDB.close()
+        elif request.form["id_form"] == "elimina_cliente":
+            commesse = dati_mcp("commesse")
+            ha_commesse = False
+            for i in commesse:
+                if int(i["cliente"]["id"]) == int(request.form["id_cliente"]):
+                    ha_commesse = True
+            if ha_commesse:
+                flash("Cliente NON eliminato, esistono commesse a suo nome!", "warning")
+            else:
+                mcpDB = sqlite3.connect(mcpDB_path)
+                cur = mcpDB.cursor()
+                cur.execute("DELETE from clienti where id = ?", [int(request.form["id_cliente"])])
+                mcpDB.commit()
+                mcpDB.close()
+                flash("Eliminato con successo!", "success")
     return render_template("clienti.html", gestione=gestisce(), clienti=get_clienti())
 
-@app.route("/dettaglio_storico")
+@app.route("/dettaglio_commessa/<string:id_commessa>")
 @login_required
-def dettaglio_storico():
-    return render_template("dettaglio_storico.html", gestione=gestisce())
+def dettaglio_storico(id_commessa):
+    if not gestisce():
+        return redirect(url_for("dashboard"))
+    mcpDB = sqlite3.connect(mcpDB_path)
+    cur = mcpDB.cursor()
+    cur.execute("select * from commesse where id = ?", [int(id_commessa)])
+    commesse = cur.fetchall()
+    cur.execute("select * from lavorazioni where commessa = ?", [int(id_commessa)])
+    lavorazioni = cur.fetchall()
+    mcpDB.commit()
+    mcpDB.close()
+    tmp_lavorazioni = []
+    ore_lavorate = 0.0
+    euro_spesi = 0.0
+    for lavorazione in lavorazioni:
+        tmp_lavorazione = {
+            "id": lavorazione[0],
+            "collaboratore": {"id": lavorazione[1],"nome": get_nome("collaboratore", lavorazione[1])},
+            "tipo": {"id": lavorazione[3],"nome": get_nome("tipo_lavorazione", lavorazione[3])},
+            "durata": json.loads(lavorazione[4]),
+            "costo": get_costo(lavorazione[1], json.loads(lavorazione[4]))
+            }
+        ore_lavorate += float(tmp_lavorazione["durata"]["ore"])
+        euro_spesi += tmp_lavorazione["costo"]
+        tmp_lavorazioni.append(tmp_lavorazione)
+    tmp_specifiche = {
+            "budget_ore": float(json.loads(commesse[0][5])["budget_ore"]),
+            "budget_euro": float(json.loads(commesse[0][5])["budget_euro"]),
+            "ore_lavorate": ore_lavorate,
+            "euro_spesi": euro_spesi,
+            "project_manager": {"id": json.loads(commesse[0][5])["project_manager"],"nome": get_nome("collaboratore", json.loads(commesse[0][5])["project_manager"])},
+            "tipologia": get_tipo_commessa(json.loads(commesse[0][5])["tipologia"])
+            }
+    tmp_commessa = {
+        "id": commesse[0][0],
+        "numero": get_numero_commessa(commesse[0][1]),
+        "tipo": commesse[0][2],
+        "nome": commesse[0][3],
+        "cliente": {"id": commesse[0][4],"nome": get_nome("cliente", commesse[0][4])},
+        "specifiche": tmp_specifiche,
+        "durata": json.loads(commesse[0][6]),
+        "note": commesse[0][7],
+        "lavorazioni": tmp_lavorazioni
+        }
+    return render_template("dettaglio_storico.html", gestione=gestisce(), commessa=tmp_commessa)
 
 @app.route("/report")
 @login_required
 def report():
+    if not gestisce():
+        return redirect(url_for("dashboard"))
     return render_template("report.html", gestione=gestisce())
+
+@app.route("/genera_report/<string:id_commessa>")
+@login_required
+def crea_report(id_commessa):
+    if not gestisce():
+        return redirect(url_for("dashboard"))
+    mcpDB = sqlite3.connect(mcpDB_path)
+    cur = mcpDB.cursor()
+    cur.execute("select * from commesse where id = ?", [int(id_commessa)])
+    commesse = cur.fetchall()
+    cur.execute("select * from lavorazioni where commessa = ?", [int(id_commessa)])
+    lavorazioni = cur.fetchall()
+    mcpDB.commit()
+    mcpDB.close()
+    tmp_lavorazioni = []
+    ore_lavorate = 0.0
+    euro_spesi = 0.0
+    for lavorazione in lavorazioni:
+        tmp_lavorazione = {
+            "id": lavorazione[0],
+            "collaboratore": {"id": lavorazione[1],"nome": get_nome("collaboratore", lavorazione[1])},
+            "tipo": {"id": lavorazione[3],"nome": get_nome("tipo_lavorazione", lavorazione[3])},
+            "durata": json.loads(lavorazione[4]),
+            "costo": get_costo(lavorazione[1], json.loads(lavorazione[4]))
+            }
+        ore_lavorate += float(tmp_lavorazione["durata"]["ore"])
+        euro_spesi += tmp_lavorazione["costo"]
+        tmp_lavorazioni.append(tmp_lavorazione)
+    tmp_specifiche = {
+            "budget_ore": float(json.loads(commesse[0][5])["budget_ore"]),
+            "budget_euro": float(json.loads(commesse[0][5])["budget_euro"]),
+            "ore_lavorate": ore_lavorate,
+            "euro_spesi": euro_spesi,
+            "project_manager": {"id": json.loads(commesse[0][5])["project_manager"],"nome": get_nome("collaboratore", json.loads(commesse[0][5])["project_manager"])},
+            "tipologia": get_tipo_commessa(json.loads(commesse[0][5])["tipologia"])
+            }
+    tmp_commessa = {
+        "id": commesse[0][0],
+        "numero": get_numero_commessa(commesse[0][1]),
+        "tipo": commesse[0][2],
+        "nome": commesse[0][3],
+        "cliente": {"id": commesse[0][4],"nome": get_nome("cliente", commesse[0][4])},
+        "specifiche": tmp_specifiche,
+        "durata": json.loads(commesse[0][6]),
+        "note": commesse[0][7]
+        }
+    workbook = load_workbook(filename = '/home/calminaro/Documenti/mcp_consulting/static/report_commessa.xlsx')
+    foglio = workbook["Riepilogo"]
+
+    foglio["B1"] = tmp_commessa["numero"]
+    foglio["B2"] = tmp_commessa["nome"]
+    foglio["B3"] = tmp_commessa["cliente"]["nome"]
+    foglio["B4"] = tmp_commessa["durata"]["inizio"][8:10]+"/"+tmp_commessa["durata"]["inizio"][5:7]+"/"+tmp_commessa["durata"]["inizio"][0:4]
+    foglio["B5"] = tmp_commessa["durata"]["fine"][8:10]+"/"+tmp_commessa["durata"]["fine"][5:7]+"/"+tmp_commessa["durata"]["fine"][0:4]
+    foglio["B6"] = tmp_commessa["specifiche"]["project_manager"]["nome"]
+    foglio["B7"] = tmp_commessa["specifiche"]["budget_ore"]
+    foglio["B8"] = tmp_commessa["specifiche"]["budget_euro"]
+    foglio["E1"] = tmp_commessa["specifiche"]["euro_spesi"]
+    foglio["E2"] = tmp_commessa["specifiche"]["ore_lavorate"]
+
+    tmp_riga = 12
+    for i in tmp_lavorazioni:
+        foglio.cell(row=tmp_riga, column=1).value = i["durata"]["data"][8:10]+"/"+i["durata"]["data"][5:7]+"/"+i["durata"]["data"][0:4]
+        foglio.cell(row=tmp_riga, column=2).value = i["collaboratore"]["nome"]
+        foglio.cell(row=tmp_riga, column=3).value = i["durata"]["ore"]
+        if i["durata"]["trasferta"]:
+            foglio.cell(row=tmp_riga, column=4).value = "Si"
+        else:
+            foglio.cell(row=tmp_riga, column=4).value = "No"
+        foglio.cell(row=tmp_riga, column=5).value = i["tipo"]["nome"]
+        foglio.cell(row=tmp_riga, column=6).value = i["costo"]
+        tmp_riga += 1
+
+    workbook.save(filename="/home/calminaro/Documenti/mcp_consulting/static/report_commessa_compilato.xlsx")
+
+    nome_file = "report_commessa_"+tmp_commessa["durata"]["inizio"][0:4]+"_"+tmp_commessa["numero"]+".xlsx"
+
+    return send_file("/home/calminaro/Documenti/mcp_consulting/static/report_commessa_compilato.xlsx", as_attachment=True, download_name=nome_file)
 
 #GESTIONE ACCOUNT - GESTIONE LOGIN
 @app.route("/account", methods=("GET", "POST"))
@@ -434,8 +648,8 @@ def logout():
 @app.route("/collaboratori", methods=("GET", "POST"))
 @login_required
 def collaboratori():
-    if current_user.collaboratore["ruolo"] != "manager":
-        redirect(url_for("homepage"))
+    if not gestisce():
+        return redirect(url_for("dashboard"))
     if request.method == "POST":
         if request.form["id_form"] == "nuovo_utente":
             utente = User.query.filter_by(username=request.form["username"]).first()

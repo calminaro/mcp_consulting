@@ -55,10 +55,18 @@
 
 <nav aria-label="Page navigation example">
   <ul class="pagination pagination-sm justify-content-end">
-    <li class="page-item"><a class="page-link" href="#">2020</a></li>
-    <li class="page-item"><a class="page-link" href="#">2021</a></li>
-    <li class="page-item"><a class="page-link" href="#">2022</a></li>
-    <li class="page-item active"><a class="page-link" href="#">2023</a></li>
+    {% if not anno %}
+    <li class="page-item active"><a class="page-link" href="{{ url_for("storico") }}">Tutti</a></li>
+    {% else %}
+    <li class="page-item"><a class="page-link" href="{{ url_for("storico") }}">Tutti</a></li>
+    {% endif %}
+    {% for i in anni %}
+    {% if i == anno %}
+    <li class="page-item active"><a class="page-link" href="{{ url_for("storico_anno", anno=i) }}">{{ i }}</a></li>
+    {% else %}
+    <li class="page-item"><a class="page-link" href="{{ url_for("storico_anno", anno=i) }}">{{ i }}</a></li>
+    {% endif %}
+    {% endfor %}
   </ul>
 </nav>
 
@@ -71,40 +79,28 @@
       <th scope="col">Cliente<br><input type="text" class="form-control form-control-sm" id="s_cliente" onkeyup="f_cliente()" placeholder=""></th>
       <th scope="col">Data apertura<br><input type="text" class="form-control form-control-sm" id="s_data_a" onkeyup="f_data_a()" placeholder=""></th>
       <th scope="col">Data chiusura<br><input type="text" class="form-control form-control-sm" id="s_data_c" onkeyup="f_data_c()" placeholder=""></th>
-      <th scope="col">Azioni</th>
+      <th scope="col"></th>
     </tr>
   </thead>
   <tbody>
+    {% for i in dati %}
+    {% if i["durata"]["fine"] %}
+    {% if not anno or i["durata"]["inizio"][0:4] == anno %}
     <tr>
-      <td>#0002</td>
-      <td></td>
-      <td>Dromont</td>
-      <td>21/02/2023</td>
-      <td>24/04/2023</td>
-      <td><a href="{{ url_for("dettaglio_storico") }}">Dettaglio</a></td>
+      <td><strong>#{{ i["numero"] }}</strong></td>
+      <td>{{ i["nome"] }}</td>
+      <td>{{ i["cliente"]["nome"] }}</td>
+      <td>{{ i["durata"]["inizio"][8:10] }}/{{ i["durata"]["inizio"][5:7] }}/{{ i["durata"]["inizio"][0:4] }}</td>
+      <td>{{ i["durata"]["fine"][8:10] }}/{{ i["durata"]["fine"][5:7] }}/{{ i["durata"]["fine"][0:4] }}</td>
+      <td><a type="button" class="btn btn-warning btn-sm" href="{{ url_for("dettaglio_storico", id_commessa=i["id"]) }}">Dettaglio</a></td>
     </tr>
-    <tr>
-      <td>#0003</td>
-      <td></td>
-      <td>ST-Agrate</td>
-      <td>21/03/2023</td>
-      <td>24/05/2023</td>
-      <td><a href="{{ url_for("dettaglio_storico") }}">Dettaglio</a></td>
-    </tr>
-    <tr>
-      <td>#000B</td>
-      <td>Offerte</td>
-      <td></td>
-      <td>19/02/2023</td>
-      <td>28/04/2023</td>
-      <td><a href="{{ url_for("dettaglio_storico") }}">Dettaglio</a></td>
-    </tr>
+    {% endif %}
+    {% endif %}
+    {% endfor %}
   </tbody>
 </table>
 
-
 <script>
-
 function f_id() {
   // Declare variables
   var input, filter, table, tr, td, i, txtValue;
@@ -214,7 +210,6 @@ function f_data_c() {
     }
   }
 }
-
 </script>
 
 

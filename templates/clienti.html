@@ -51,22 +51,20 @@
 
 {% block corpo %}
 
-{% with messages = get_flashed_messages() %}
+{% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    <ul class=flashes>
-    {% for message in messages %}
-      <div class="my-4 mx-5 alert alert-warning alert-dismissible fade show" role="alert">
+    {% for category, message in messages %}
+      <div class="my-4 alert alert-{{ category }} alert-dismissible fade show" role="alert">
         {{ message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
     {% endfor %}
-    </ul>
   {% endif %}
 {% endwith %}
 
 <h2><strong>Clienti</strong></h2>
 <!-- Button trigger modal -->
-<button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#nuovo_clienteModal">Nuovo Cliente</button>
+<button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#nuovo_clienteModal" data-bs-id_cliente="">Nuovo Cliente</button>
 
 <div class="table-responsive">
 <table class="table">
@@ -83,8 +81,10 @@
       <td>{{i[0]}}</td>
       <td>{{i[1]}}</td>
       <td>
-      <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#dettagli_collabModal">Modifica</button>
-      <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#dettagli_collabModal">Elimina</button>
+        <div class="btn-group" role="group" aria-label="Azioni">
+        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#nuovo_clienteModal" data-bs-id_cliente="{{ i[0] }}" data-bs-nome_cliente="{{ i[1] }}">Modifica</button>
+        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#eliminaclienteModal" data-bs-id_cliente="{{ i[0] }}" data-bs-nome_cliente="{{ i[1] }}">Elimina</button>
+        </div>
       </td>
     </tr>
   {% endfor %}
@@ -103,15 +103,86 @@
       <div class="modal-body">
         <form method="post">
           <input type="hidden" id="id_form" name="id_form" value="nuovo_cliente">
+          <input type="hidden" id="id_cliente" name="id_cliente" value="">
           <div class="mb-3">
             <label for="nome" class="form-label">Nome Cliente</label>
             <input type="text" class="form-control" id="nome" name="nome">
           </div>
-          <button type="submit" class="btn btn-primary">Aggiungi cliente</button>
+          <button type="submit" class="btn btn-warning">Aggiungi cliente</button>
         </form>
       </div>
     </div>
   </div>
 </div>
+
+<!--Modal eliminare commesse-->
+<div class="modal fade" id="eliminaclienteModal" tabindex="-1" aria-labelledby="eliminaclienteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="eliminaclienteModalLabel">Elimina</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>ATTENZIONE: </strong>Non sarà possibile recuperare i dati eliminati!</p>
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="elimina_cliente">
+          <input type="hidden" id="id_cliente" name="id_cliente" value="">
+          <button type="submit" class="btn btn-danger btn-sm">Elimina</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const nuovo_clienteModal = document.getElementById('nuovo_clienteModal')
+nuovo_clienteModal.addEventListener('show.bs.modal', event => {
+  // Button that triggered the modal
+  const button = event.relatedTarget
+  // Extract info from data-bs-* attributes
+  const id_cliente = button.getAttribute('data-bs-id_cliente')
+  const nome_cliente = button.getAttribute('data-bs-nome_cliente')
+  // If necessary, you could initiate an AJAX request here
+  // and then do the updating in a callback.
+  //
+  // Update the modal's content.
+  const modalTitle = nuovo_clienteModal.querySelector('.modal-title')
+  const id_form = nuovo_clienteModal.querySelector('#id_form')
+  const idd_cliente = nuovo_clienteModal.querySelector('#id_cliente')
+  const nome = nuovo_clienteModal.querySelector('#nome')
+  if (id_cliente == "") {
+  modalTitle.textContent = `Nuovo Cliente`
+  id_form.value = `nuovo_cliente`
+  idd_cliente.value = ``
+  nome.value = ``
+  } else {
+  modalTitle.textContent = `Modifica Cliente`
+  id_form.value = `modifica_cliente`
+  idd_cliente.value = `${id_cliente}`
+  nome.value = `${nome_cliente}`
+  }
+})
+
+const eliminaclienteModal = document.getElementById('eliminaclienteModal')
+eliminaclienteModal.addEventListener('show.bs.modal', event => {
+  // Button that triggered the modal
+  const button = event.relatedTarget
+  // Extract info from data-bs-* attributes
+  const id_cliente = button.getAttribute('data-bs-id_cliente')
+  const nome_cliente = button.getAttribute('data-bs-nome_cliente')
+  // If necessary, you could initiate an AJAX request here
+  // and then do the updating in a callback.
+  //
+  // Update the modal's content.
+  const modalTitle = eliminaclienteModal.querySelector('.modal-title')
+  const id_form = eliminaclienteModal.querySelector('#id_form')
+  const idd_cliente = eliminaclienteModal.querySelector('#id_cliente')
+  const nome = eliminaclienteModal.querySelector('#nome')
+
+  modalTitle.textContent = `Elimina Cliente: ${nome_cliente}`
+  idd_cliente.value = `${id_cliente}`
+})
+</script>
 
 {% endblock %}
