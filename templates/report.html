@@ -53,21 +53,93 @@
 
 {% with messages = get_flashed_messages() %}
   {% if messages %}
-    <ul class=flashes>
     {% for message in messages %}
-      <div class="my-4 mx-5 alert alert-warning alert-dismissible fade show" role="alert">
+      <div class="my-4 alert alert-warning alert-dismissible fade show" role="alert">
         {{ message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
     {% endfor %}
-    </ul>
   {% endif %}
 {% endwith %}
 
 <h2><strong>Report</strong></h2>
-<div class="text-center">
-<img src="/static/cat.png" class="img-fluid" alt="...">
-<p>Questa pagina ancora non esiste :)</p>
+
+<!-- Button trigger modal -->
+<button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#meseModal">
+  <div class="card" style="width: 18rem;">
+    <div class="card-body">
+      <h5 class="card-title">Report Mensile</h5>
+    </div>
+  </div>
+</button>
+<button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#annoModal">
+  <div class="card" style="width: 18rem;">
+    <div class="card-body">
+      <h5 class="card-title">Report Annuale</h5>
+    </div>
+  </div>
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="meseModal" tabindex="-1" aria-labelledby="meseModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="meseModalLabel">Report Mensile</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+        <input type="hidden" id="id_form" name="id_form" value="report_mensile">
+        <div class="mb-3">
+            <label for="message-text" class="col-form-label">Tipo di Report</label>
+            <select class="form-select" aria-label="Tipo di Report" id="tipo" name="tipo">
+              <option value="commesse">Commesse</option>
+              <option value="collaboratori">Collaboratori</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="mese" class="form-label">Mese</label>
+            <input type="month" class="form-control" id="mese" name="mese">
+          </div>
+          <button type="submit" class="btn btn-warning">Scarica</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
+
+<div class="modal fade" id="annoModal" tabindex="-1" aria-labelledby="annoModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="annoModalLabel">Report Annuale</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+        <input type="hidden" id="id_form" name="id_form" value="report_annuale">
+        <div class="mb-3">
+            <label for="message-text" class="col-form-label">Tipo di Report</label>
+            <select class="form-select" aria-label="Tipo di Report" id="tipo" name="tipo">
+              <option value="commesse">Commesse</option>
+              <option value="collaboratori">Collaboratori</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="message-text" class="col-form-label">Anno</label>
+            <select class="form-select" aria-label="Anno" id="anno" name="anno">
+              {% for i in anni %}
+              <option value={{ i }}>{{ i }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-warning">Scarica</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 {% endblock %}

@@ -531,12 +531,157 @@ def dettaglio_storico(id_commessa):
         }
     return render_template("dettaglio_storico.html", gestione=gestisce(), commessa=tmp_commessa)
 
-@app.route("/report")
+@app.route("/report", methods=("GET", "POST"))
 @login_required
 def report():
     if not gestisce():
         return redirect(url_for("dashboard"))
-    return render_template("report.html", gestione=gestisce())
+    if request.method == "POST":
+        if request.form["id_form"] == "report_mensile":
+            return redirect(url_for("report_periodo", tipo=request.form["tipo"], anno=request.form["mese"][0:4], mese=request.form["mese"][5:7]))
+        elif request.form["id_form"] == "report_annuale":
+            return redirect(url_for("report_periodo", tipo=request.form["tipo"], anno=request.form["anno"], mese="0"))
+    base_anno = 2020
+    oggi = [int(str(datetime.datetime.now())[0:4]), int(str(datetime.datetime.now())[5:7])]
+    mesi = []
+    anni = []
+    for i in range(oggi[0] - base_anno):
+        anni.append(i+base_anno)
+        for j in range(12):
+            mesi.append([j+1, i+base_anno])
+    for i in range(oggi[1]-1):
+        mesi.append([i+1, 2023])
+    anni.reverse()
+    mesi.reverse()
+    return render_template("report.html", gestione=gestisce(), anni=anni)
+
+@app.route("/report/<string:tipo>/<string:anno>/<string:mese>")
+@login_required
+def report_periodo(tipo, anno, mese):
+    if not gestisce():
+        return redirect(url_for("dashboard"))
+    if tipo == "commesse":
+        dati = dati_mcp("commesse_complete")
+        commesse = []
+        for i in dati:
+            tmp_bool = False
+            for j in i["lavorazioni"]:
+                if int(j["durata"]["data"][0:4]) == int(anno):
+                    if int(mese) == 0:
+                        tmp_bool = True
+                    elif int(j["durata"]["data"][5:7]) == int(mese):
+                        tmp_bool = True
+            if tmp_bool:
+                commesse.append(i)
+        workbook = load_workbook(filename = '/home/calminaro/Documenti/mcp_consulting/static/report_commesse.xlsx')
+        for i in commesse:
+            workbook.copy_worksheet(workbook['base']).title = "#"+i["numero"]
+            foglio = workbook["#"+i["numero"]]
+            foglio["B1"] = i["numero"]
+            foglio["B2"] = i["nome"]
+            foglio["B3"] = i["cliente"]["nome"]
+            foglio["B4"] = i["durata"]["inizio"][8:10]+"/"+i["durata"]["inizio"][5:7]+"/"+i["durata"]["inizio"][0:4]
+            if i["durata"]["fine"]:
+                foglio["B5"] = i["durata"]["fine"][8:10]+"/"+i["durata"]["fine"][5:7]+"/"+i["durata"]["fine"][0:4]
+            foglio["B6"] = i["specifiche"]["project_manager"]["nome"]
+            foglio["B7"] = i["specifiche"]["budget_ore"]
+            foglio["B8"] = i["specifiche"]["budget_euro"]
+
+            tmp_riga = 12
+            for j in i["lavorazioni"]:
+                if int(j["durata"]["data"][0:4]) == int(anno):
+                    if int(mese) == 0 or (int(j["durata"]["data"][5:7]) == int(mese)):
+                        foglio.cell(row=tmp_riga, column=1).value = j["durata"]["data"][8:10]+"/"+j["durata"]["data"][5:7]+"/"+j["durata"]["data"][0:4]
+                        foglio.cell(row=tmp_riga, column=2).value = j["collaboratore"]["nome"]
+                        foglio.cell(row=tmp_riga, column=3).value = float(j["durata"]["ore"])
+                        if j["durata"]["trasferta"]:
+                            foglio.cell(row=tmp_riga, column=4).value = "Si"
+                        else:
+                            foglio.cell(row=tmp_riga, column=4).value = "No"
+                        foglio.cell(row=tmp_riga, column=5).value = j["tipo"]["nome"]
+                        foglio.cell(row=tmp_riga, column=6).value = j["costo"]
+                        tmp_riga += 1
+        try:
+            workbook.remove(workbook['base'])
+            workbook.save(filename="/home/calminaro/Documenti/mcp_consulting/static/report_commesse_compilato.xlsx")
+        except:
+            return redirect(url_for("report"))
+        if int(mese) == 0:
+            nome_file = "report_commesse_"+anno+".xlsx"
+        else:
+            nome_file = "report_commesse_"+mese+"_"+anno+".xlsx"
+
+        return send_file("/home/calminaro/Documenti/mcp_consulting/static/report_commesse_compilato.xlsx", as_attachment=True, download_name=nome_file)
+    elif tipo == "collaboratori":
+        mcpDB = sqlite3.connect(mcpDB_path)
+        cur = mcpDB.cursor()
+        cur.execute("select * from lavorazioni")
+        lavorazioni = cur.fetchall()
+        tmp_lavorazioni = []
+        for lavorazione in lavorazioni:
+            tmp_lavorazione = {
+                "id": lavorazione[0],
+                "collaboratore": {"id": lavorazione[1],"nome": get_nome("collaboratore", lavorazione[1])},
+                "commessa" : lavorazione[2],
+                "tipo": {"id": lavorazione[3],"nome": get_nome("tipo_lavorazione", lavorazione[3])},
+                "durata": json.loads(lavorazione[4])
+                }
+            if int(mese) == 0 and int(tmp_lavorazione["durata"]["data"][0:4]) == int(anno):
+                tmp_lavorazioni.append(tmp_lavorazione)
+            elif int(tmp_lavorazione["durata"]["data"][5:7]) == int(mese) and int(tmp_lavorazione["durata"]["data"][0:4]) == int(anno):
+                tmp_lavorazioni.append(tmp_lavorazione)
+        utenti = User.query.all()
+        workbook = load_workbook(filename = '/home/calminaro/Documenti/mcp_consulting/static/report_collaboratori.xlsx')
+        for i in utenti:
+            workbook.copy_worksheet(workbook['base']).title = i.anagrafica["nome"] + " " + i.anagrafica["cognome"]
+            foglio = workbook[i.anagrafica["nome"] + " " + i.anagrafica["cognome"]]
+
+            tmp_riga = 2
+            for j in tmp_lavorazioni:
+                if int(j["collaboratore"]["id"]) == int(i.id):
+                    cur.execute("select * from commesse where id = ?", [j["commessa"]])
+                    commesse = cur.fetchall()
+                    commessa = commesse[0]
+                    tmp_specifiche = {
+                            "budget_ore": json.loads(commessa[5])["budget_ore"],
+                            "budget_euro": json.loads(commessa[5])["budget_euro"],
+                            "project_manager": {"id": json.loads(commessa[5])["project_manager"],"nome": get_nome("collaboratore", json.loads(commessa[5])["project_manager"])},
+                            "tipologia": get_tipo_commessa(json.loads(commessa[5])["tipologia"])
+                            }
+                    tmp_commessa = {
+                        "id": commessa[0],
+                        "numero": get_numero_commessa(commessa[1]),
+                        "tipo": commessa[2],
+                        "nome": commessa[3],
+                        "cliente": {"id": commessa[4],"nome": get_nome("cliente", commessa[4])},
+                        "specifiche": tmp_specifiche,
+                        "durata": json.loads(commessa[6]),
+                        "note": commessa[7]
+                        }
+                    foglio.cell(row=tmp_riga, column=1).value = j["durata"]["data"][8:10]+"/"+j["durata"]["data"][5:7]+"/"+j["durata"]["data"][0:4]
+                    foglio.cell(row=tmp_riga, column=2).value = tmp_commessa["numero"]
+                    foglio.cell(row=tmp_riga, column=3).value = tmp_commessa["nome"]
+                    foglio.cell(row=tmp_riga, column=4).value = j["tipo"]["nome"]
+                    foglio.cell(row=tmp_riga, column=5).value = float(j["durata"]["ore"])
+                    if j["durata"]["trasferta"]:
+                        foglio.cell(row=tmp_riga, column=6).value = "Si"
+                    else:
+                        foglio.cell(row=tmp_riga, column=6).value = "No"
+                    tmp_riga += 1
+        mcpDB.commit()
+        mcpDB.close()
+        try:
+            workbook.remove(workbook['base'])
+            workbook.save(filename="/home/calminaro/Documenti/mcp_consulting/static/report_collaboratori_compilato.xlsx")
+        except:
+            return redirect(url_for("report"))
+        if int(mese) == 0:
+            nome_file = "report_collaboratori_"+anno+".xlsx"
+        else:
+            nome_file = "report_collaboratori_"+mese+"_"+anno+".xlsx"
+
+        return send_file("/home/calminaro/Documenti/mcp_consulting/static/report_collaboratori_compilato.xlsx", as_attachment=True, download_name=nome_file)
+    return redirect(url_for("report"))
 
 @app.route("/genera_report/<string:id_commessa>")
 @login_required
@@ -594,14 +739,12 @@ def crea_report(id_commessa):
     foglio["B6"] = tmp_commessa["specifiche"]["project_manager"]["nome"]
     foglio["B7"] = tmp_commessa["specifiche"]["budget_ore"]
     foglio["B8"] = tmp_commessa["specifiche"]["budget_euro"]
-    foglio["E1"] = tmp_commessa["specifiche"]["euro_spesi"]
-    foglio["E2"] = tmp_commessa["specifiche"]["ore_lavorate"]
 
     tmp_riga = 12
     for i in tmp_lavorazioni:
         foglio.cell(row=tmp_riga, column=1).value = i["durata"]["data"][8:10]+"/"+i["durata"]["data"][5:7]+"/"+i["durata"]["data"][0:4]
         foglio.cell(row=tmp_riga, column=2).value = i["collaboratore"]["nome"]
-        foglio.cell(row=tmp_riga, column=3).value = i["durata"]["ore"]
+        foglio.cell(row=tmp_riga, column=3).value = float(i["durata"]["ore"])
         if i["durata"]["trasferta"]:
             foglio.cell(row=tmp_riga, column=4).value = "Si"
         else:

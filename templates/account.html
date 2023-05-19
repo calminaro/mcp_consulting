@@ -25,8 +25,13 @@
     </a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" href="">
+    <a class="nav-link" href="{{ url_for("clienti") }}">
       Clienti
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("report") }}">
+      Report
     </a>
   </li>
   {% endif %}
@@ -48,88 +53,30 @@
 
 <h2><strong>Account</strong></h2>
 
-    {% if not verificato %}
-      <form method="post">
-        <input type="hidden" class="form-control" id="id_form" name="id_form" value="verifica_codice">
-        <div class="mb-3">
-          <label for="codice" class="form-label">Codice di Verifica</label>
-          <input type="text" class="form-control" id="codice" name="codice" aria-describedby="codiceHelp">
-          <div id="codiceHelp" class="form-text">Codice che ti è stato inviato nella mail d'iscrizione.</div>
-        </div>
-        <button type="submit" class="btn" style="background-color: orange;">Verifica Mail</button>
-      </form>
-      <hr>
-    {% endif %}
+<p>Nome: {{ current_user.anagrafica["nome"] }}<br>Cognome: {{ current_user.anagrafica["cognome"] }}</p>
 
-
-      <nav>
-        <div class="nav nav-tabs" id="nav-tab" role="tablist">
-          <button class="nav-link active" id="nav-home-tab" data-bs-toggle="tab" data-bs-target="#nav-home" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Anagrafica</button>
-          <button class="nav-link" id="nav-profile-tab" data-bs-toggle="tab" data-bs-target="#nav-profile" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">Cambio Password</button>
-        </div>
-      </nav>
-      <div class="tab-content" id="nav-tabContent">
-        <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab" tabindex="0">
-          <form method="post">
-            <input type="hidden" class="form-control" id="id_form" name="id_form" value="aggiorna_anagrafica">
-          <div class="row">
-            <div class="col">
-              <div class="my-3 row">
-                <label for="nome" class="col-sm-2 col-form-label">Nome</label>
-                <div class="col-sm-10">
-                  <input type="text" class="form-control" id="nome" name="nome" value="{{ current_user.anagrafica["nome"] }}">
-                </div>
-              </div>
-              <div class="mb-3 row">
-                <label for="cognome" class="col-sm-2 col-form-label">Cognome</label>
-                <div class="col-sm-10">
-                  <input type="text" class="form-control" id="cognome" name="cognome" value="{{ current_user.anagrafica["cognome"] }}">
-                </div>
-              </div>
-            </div>
-            <div class="col">
-              <div class="my-3 row">
-                <label for="mail" class="col-sm-2 col-form-label">Mail</label>
-                <div class="col-sm-10">
-                  <input type="text" class="form-control" id="mail" name="mail" value="{{ current_user.anagrafica["mail"] }}">
-                </div>
-              </div>
-              <div class="mb-3 row">
-                <label for="username" class="col-sm-2 col-form-label">Username</label>
-                <div class="col-sm-10">
-                  <input type="text" class="form-control" id="username" name="username" value="{{ current_user.username }}">
-                </div>
-              </div>
-            </div>
-          </div>
-          <button type="submit" class="btn" style="background-color: orange;">Aggiorna Anagrafica</button>
-          </form>
-        </div>
-        <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab" tabindex="0">
-          <form method="post">
-            <input type="hidden" class="form-control" id="id_form" name="id_form" value="aggiorna_passwd">
-          <div class="my-3 row">
-            <label for="nome" class="col-sm-2 col-form-label">Vecchia Password</label>
-            <div class="col-sm-10">
-              <input type="password" class="form-control" id="old_passwd" name="old_passwd">
-            </div>
-          </div>
-          <div class="my-3 row">
-            <label for="nome" class="col-sm-2 col-form-label">Nuova Password</label>
-            <div class="col-sm-10">
-              <input type="password" class="form-control" id="passwd" name="passwd">
-            </div>
-          </div>
-          <div class="my-3 row">
-            <label for="nome" class="col-sm-2 col-form-label">Ripeti Nuova Password</label>
-            <div class="col-sm-10">
-              <input type="password" class="form-control" id="new_passwd" name="new_passwd">
-            </div>
-          </div>
-          <button type="submit" class="btn" style="background-color: orange;">Aggiorna Password</button>
-          </form>
-        </div>
-      </div>
+<form method="post">
+  <input type="hidden" class="form-control" id="id_form" name="id_form" value="aggiorna_passwd">
+<div class="my-3 row">
+  <label for="nome" class="col-sm-2 col-form-label">Vecchia Password</label>
+  <div class="col-sm-10">
+    <input type="password" class="form-control form-control-sm" id="old_passwd" name="old_passwd">
+  </div>
+</div>
+<div class="my-3 row">
+  <label for="nome" class="col-sm-2 col-form-label">Nuova Password</label>
+  <div class="col-sm-10">
+    <input type="password" class="form-control form-control-sm" id="passwd" name="passwd">
+  </div>
+</div>
+<div class="my-3 row">
+  <label for="nome" class="col-sm-2 col-form-label">Ripeti Nuova Password</label>
+  <div class="col-sm-10">
+    <input type="password" class="form-control form-control-sm" id="new_passwd" name="new_passwd">
+  </div>
+</div>
+<button type="submit" class="btn btn-sm" style="background-color: orange;">Aggiorna Password</button>
+</form>
 
 
 {% endblock %}
