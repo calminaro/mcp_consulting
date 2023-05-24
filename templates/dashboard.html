@@ -16,6 +16,11 @@
       Storico
     </a>
   </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("nuova_commessa") }}">
+      Nuova Commessa
+    </a>
+  </li>
   <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
     <span>Amministrazione</span>
   </h6>
@@ -68,18 +73,18 @@
 <ul class="nav nav-tabs" id="myTab" role="tablist">
   <li class="nav-item" role="presentation">
   {% if pagina == "riepilogo" %}
-    <button class="nav-link active" id="base-tab" data-bs-toggle="tab" data-bs-target="#base-tab-pane" type="button" role="tab" aria-controls="base-tab-pane" aria-selected="true">Riepilogo</button>
+    <button class="nav-link active" id="base-tab" data-bs-toggle="tab" data-bs-target="#base-tab-pane" type="button" role="tab" aria-controls="base-tab-pane" aria-selected="true">Dashboard</button>
     {% else %}
-    <button class="nav-link" id="base-tab" data-bs-toggle="tab" data-bs-target="#base-tab-pane" type="button" role="tab" aria-controls="base-tab-pane" aria-selected="false">Riepilogo</button>
+    <button class="nav-link" id="base-tab" data-bs-toggle="tab" data-bs-target="#base-tab-pane" type="button" role="tab" aria-controls="base-tab-pane" aria-selected="false">Dashboard</button>
     {% endif %}
   </li>
 {% for i in dati %}
   {% if not i["durata"]["fine"] %}
     <li class="nav-item" role="presentation">
     {% if pagina|string == i["id"]|string %}
-      <button class="nav-link active" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="true">#{{ i["numero"] }}</button>
+      <button class="nav-link active" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="true">{{ i["numero"] }}</button>
     {% else %}
-      <button class="nav-link" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="false">#{{ i["numero"] }}</button>
+      <button class="nav-link" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="false">{{ i["numero"] }}</button>
     {% endif %}
     </li>
   {% endif %}
@@ -93,9 +98,20 @@
   <div class="tab-pane fade" id="base-tab-pane" role="tabpanel" aria-labelledby="base-tab" tabindex="0">
   {% endif %}
 
-  {% if gestione %}
-  <button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#commesseModal" data-bs-tmp_dati="">Nuova Commessa</button>
-  {% endif %}
+  <div class="row">
+    <div class="col-md-10">
+      <p class="my-2">
+      Benvenuto <strong>{{ current_user.anagrafica["nome"] }} {{ current_user.anagrafica["cognome"] }}</strong>.
+      <br>
+      Qui trovi l'elenco delle commesse attive, clicca sul pulsante <strong>Inserisci</strong> per inserire delle ore sulla relativa commessa.
+      </p>
+    </div>
+    <div class="col">
+      {% if gestione %}
+      <button type="button" class="btn btn-warning btn-sm my-2 float-end" onclick="mostra_filtri()"><span class="material-symbols-outlined">search</span></button>
+      {% endif %}
+    </div>
+  </div>
 
 <div class="table-responsive">
 <table class="table" id="commesse_attive">
@@ -104,21 +120,27 @@
       <th scope="col">N° Commessa<br><input type="text" class="form-control form-control-sm" id="s_id" onkeyup="f_id()" placeholder=""></th>
       <th scope="col">Nome Commessa<br><input type="text" class="form-control form-control-sm" id="s_nome" onkeyup="f_nome()" placeholder=""></th>
       <th scope="col">Cliente<br><input type="text" class="form-control form-control-sm" id="s_cliente" onkeyup="f_cliente()" placeholder=""></th>
+      {% if gestione %}
       <th scope="col">Data apertura<br><input type="text" class="form-control form-control-sm" id="s_data_a" onkeyup="f_data_a()" placeholder=""></th>
       <th scope="col">Budget [€]<br><input type="text" class="form-control form-control-sm" id="s_budget" onkeyup="f_budget()" placeholder=""></th>
       <th scope="col">Costo [€]<br><input type="text" class="form-control form-control-sm" id="s_guadagno" onkeyup="f_guadagno()" placeholder=""></th>
+      {% endif %}
+      <th scope="col"></th>
     </tr>
   </thead>
   <tbody>
     {% for i in dati %}
     {% if not i["durata"]["fine"] %}
     <tr>
-      <td>#{{ i["numero"] }}</td>
+      <td>{{ i["numero"] }}</td>
       <td>{{ i["nome"] }}</td>
       <td>{{ i["cliente"]["nome"] }}</td>
+      {% if gestione %}
       <td>{{ i["durata"]["inizio"][8:10] }}/{{ i["durata"]["inizio"][5:7] }}/{{ i["durata"]["inizio"][0:4] }}</td>
       <td>{{ i["specifiche"]["budget_euro"] }}</td>
       <td>{{ i["specifiche"]["euro_spesi"] }}</td>
+      {% endif %}
+      <td><button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-numero_commessa="{{ i["numero"] }}" data-bs-tmp_dati="">Inserisci ore</button></td>
     </tr>
     {% endif %}
     {% endfor %}
@@ -127,6 +149,43 @@
 
 
 <script>
+var s_id = document.getElementById("s_id");
+var s_nome = document.getElementById("s_nome");
+var s_cliente = document.getElementById("s_cliente");
+var s_data_a = document.getElementById("s_data_a");
+var s_budget = document.getElementById("s_budget");
+var s_guadagno = document.getElementById("s_guadagno");
+
+s_id.style.display = "none";
+s_nome.style.display = "none";
+s_cliente.style.display = "none";
+s_data_a.style.display = "none";
+s_budget.style.display = "none";
+s_guadagno.style.display = "none";
+
+function mostra_filtri() {
+  var s_id = document.getElementById("s_id");
+  var s_nome = document.getElementById("s_nome");
+  var s_cliente = document.getElementById("s_cliente");
+  var s_data_a = document.getElementById("s_data_a");
+  var s_budget = document.getElementById("s_budget");
+  var s_guadagno = document.getElementById("s_guadagno");
+  if (s_id.style.display === "none") {
+    s_id.style.display = "block";
+    s_nome.style.display = "block";
+    s_cliente.style.display = "block";
+    s_data_a.style.display = "block";
+    s_budget.style.display = "block";
+    s_guadagno.style.display = "block";
+  } else {
+    s_id.style.display = "none";
+    s_nome.style.display = "none";
+    s_cliente.style.display = "none";
+    s_data_a.style.display = "none";
+    s_budget.style.display = "none";
+    s_guadagno.style.display = "none";
+  }
+}
 
 function f_id() {
   // Declare variables
@@ -297,8 +356,8 @@ function f_guadagno() {
       <thead>
         <tr>
           <th scope="col">Data apertura</th>
-          <th scope="col">Monte ore contratto</th>
           {% if gestione %}
+          <th scope="col">Monte ore contratto</th>
           <th scope="col">Budget [€]</th>
           <th scope="col">Guadagno [€]</th>
           <th scope="col">Ore disponibili</th>
@@ -309,12 +368,12 @@ function f_guadagno() {
       <tbody>
         <tr>
           <th scope="row">{{ i["durata"]["inizio"][8:10] }}/{{ i["durata"]["inizio"][5:7] }}/{{ i["durata"]["inizio"][0:4] }}</th>
+          {% if gestione %}
           {% if i["specifiche"]["budget_ore"] == 0 %}
           <td>--</td>
           {% else %}
           <td>{{ i["specifiche"]["budget_ore"] }}</td>
           {% endif %}
-          {% if gestione %}
           {% if i["specifiche"]["budget_euro"] == 0 %}
           <td>--</td>
           <td>--</td>
@@ -335,7 +394,7 @@ function f_guadagno() {
     </table>
     </div>
 
-    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ y | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Inserisci</button>
+    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-numero_commessa="{{ i["numero"] }}" data-bs-tmp_dati="">Inserisci ore</button>
     <div class="table-responsive">
     <table class="table">
       <thead>
@@ -367,7 +426,7 @@ function f_guadagno() {
           {% endif %}
           <td>
           <div class="btn-group" role="group" aria-label="Azioni">
-          <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ y | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Modifica</button>
+          <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-numero_commessa="{{ i["numero"] }}" data-bs-tmp_dati="{{ y | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Modifica</button>
           <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#eliminalavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ y | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Elimina</button>
           </div>
           </td>
@@ -456,7 +515,7 @@ function f_guadagno() {
           </div>
           <div class="mb-3">
             <label for="note" class="col-form-label"><strong>Note</strong></label>
-            <input type="text" class="form-control" id="note" name="note">
+            <textarea class="form-control" id="note" name="note" rows="2"></textarea>
             <div id="noteHelp" class="form-text">Campo libero</div>
           </div>
           </div>
@@ -541,7 +600,7 @@ function f_guadagno() {
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="eliminalavorazioniModalLabel">Elimina</h1>
+        <h1 class="modal-title fs-5" id="eliminalavorazioniModalLabel">Elimina inserimento</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -562,7 +621,7 @@ function f_guadagno() {
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="eliminacommesseModalLabel">Elimina</h1>
+        <h1 class="modal-title fs-5" id="eliminacommesseModalLabel">Elimina commessa</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -584,6 +643,7 @@ lavorazioniModal.addEventListener('show.bs.modal', event => {
   const button = event.relatedTarget
   // Extract info from data-bs-* attributes
   const id_commessa = button.getAttribute('data-bs-id_commessa')
+  const numero_commessa = button.getAttribute('data-bs-numero_commessa')
   const tmp_dati = button.getAttribute('data-bs-tmp_dati')
   // If necessary, you could initiate an AJAX request here
   // and then do the updating in a callback.
@@ -599,7 +659,7 @@ lavorazioniModal.addEventListener('show.bs.modal', event => {
   const trasferta = lavorazioniModal.querySelector('#trasferta')
   in_id_commessa.value = `${id_commessa}`
   if (tmp_dati == "") {
-  modalTitle.textContent = `Inserisci`
+  modalTitle.textContent = `Inserisci ore nella commessa ${numero_commessa}`
   id_form.value = `inserisci_lavorazione`
   id_lavorazione.value = ``
   data.value = ``
@@ -608,7 +668,7 @@ lavorazioniModal.addEventListener('show.bs.modal', event => {
   trasferta.checked = false
 
   } else {
-  modalTitle.textContent = `Modifica`
+  modalTitle.textContent = `Modifica inserimento`
   id_form.value = `modifica_lavorazione`
   id_lavorazione.value = `${JSON.parse(tmp_dati)["id"]}`
   data.value = `${JSON.parse(tmp_dati)["durata"]["data"]}`
@@ -634,7 +694,7 @@ eliminalavorazioniModal.addEventListener('show.bs.modal', event => {
   const in_id_commessa = eliminalavorazioniModal.querySelector('#id_commessa')
   const id_lavorazione = eliminalavorazioniModal.querySelector('#id_lavorazione')
   in_id_commessa.value = `${id_commessa}`
-  modalTitle.textContent = `Elimina`
+  // modalTitle.textContent = `Elimina`
   id_lavorazione.value = `${JSON.parse(tmp_dati)["id"]}`
 })
 
@@ -680,7 +740,7 @@ commesseModal.addEventListener('show.bs.modal', event => {
   tipo_altro.checked = false
 
   } else {
-  modalTitle.textContent = `Modifica commessa #${JSON.parse(tmp_dati)["numero"]}`
+  modalTitle.textContent = `Modifica commessa ${JSON.parse(tmp_dati)["numero"]}`
   id_form.value = `modifica_commessa`
   nome.value = `${JSON.parse(tmp_dati)["nome"]}`
   cliente.value = `${JSON.parse(tmp_dati)["cliente"]["id"]}`
@@ -725,7 +785,7 @@ eliminacommesseModal.addEventListener('show.bs.modal', event => {
   const modalTitle = eliminacommesseModal.querySelector('.modal-title')
   const in_id_commessa = eliminacommesseModal.querySelector('#id_commessa')
   in_id_commessa.value = `${id_commessa}`
-  modalTitle.textContent = `Elimina`
+  // modalTitle.textContent = `Elimina`
 })
 
 const chiudi_commesseModal = document.getElementById('chiudi_commesseModal')

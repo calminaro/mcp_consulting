@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block menu %}
+<ul class="nav flex-column">
+  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+    <span>Commesse</span>
+  </h6>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("dashboard") }}">
+      Attive
+    </a>
+  </li>
+  {% if gestione %}
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("storico") }}">
+      Storico
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="{{ url_for("nuova_commessa") }}">
+      Nuova Commessa
+    </a>
+  </li>
+  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+    <span>Amministrazione</span>
+  </h6>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("collaboratori") }}">
+      Collaboratori
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("clienti") }}">
+      Clienti
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("report") }}">
+      Report
+    </a>
+  </li>
+  {% endif %}
+  <hr>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("account") }}">
+      Account
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("logout") }}">
+      Logout
+    </a>
+  </li>
+</ul>
+{% endblock %}
+
+{% block corpo %}
+
+<h2><strong>Nuova Commessa</strong></h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="my-2 alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+
+
+<form method="post">
+  <input type="hidden" id="id_form" name="id_form" value="inserisci_commessa">
+  <input type="hidden" id="id_commessa" name="id_commessa" value="">
+  <div class="row">
+  <div class="col">
+  <div class="mb-3">
+    <label for="nome" class="col-form-label"><strong>Nome Commessa</strong></label>
+    <input type="text" class="form-control" id="nome" name="nome">
+  </div>
+  <div class="mb-3">
+    <label for="cliente" class="col-form-label"><strong>Cliente</strong></label>
+    <select class="form-select" aria-label="Cliente" id="cliente" name="cliente">
+      <option value="0">Crea nuovo cliente</option>
+      {% for i in clienti %}
+      <option value="{{ i[0] }}">{{ i[1] }}</option>
+      {% endfor %}
+    </select>
+    <div id="clienteHelp" class="form-text">Se commessa interna selezionare "MCP Consulting"</div>
+    <label for="new_cliente" class="col-form-label"><strong>Nuovo Cliente</strong></label>
+    <input type="text" class="form-control" id="new_cliente" name="new_cliente">
+  </div>
+  <div class="mb-3">
+    <label for="project_manager" class="col-form-label"><strong>Project Manager</strong></label>
+    <select class="form-select" aria-label="Project Manager" id="project_manager" name="project_manager">
+      {% for i in utenti %}
+      {% if i.collaboratore["ruolo"] == "manager" %}
+      <option value="{{i.id}}">{{i.anagrafica["nome"]}} {{i.anagrafica["cognome"]}}</option>
+      {% endif %}
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="col-form-label"><strong>Tipologia</strong></label>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="1" id="tipo_supporti" name="tipo_supporti">
+      <label class="form-check-label" for="tipo_supporti">Supporti</label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="2" id="tipo_piping" name="tipo_piping">
+      <label class="form-check-label" for="tipo_piping">Piping</label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="3" id="tipo_stressAnalysis" name="tipo_stressAnalysis">
+      <label class="form-check-label" for="tipo_stressAnalysis">Stress Analysis</label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="0" id="tipo_altro" name="tipo_altro">
+      <label class="form-check-label" for="tipo_altro">Altro</label>
+    </div>
+  </div>
+  </div>
+  <div class="col">
+  <div class="mb-3">
+    <label for="data" class="col-form-label"><strong>Data apertura commessa</strong></label>
+    <input type="date" class="form-control" id="data" name="data">
+  </div>
+  <div class="mb-3">
+    <label for="ore" class="col-form-label"><strong>Ore disponibili</strong></label>
+    <input type="text" class="form-control" id="ore" name="ore">
+    <div id="oreHelp" class="form-text">Inserisci il numero di ore, lascia vuoto se non c'è un limite</div>
+  </div>
+  <div class="mb-3">
+    <label for="euro" class="col-form-label"><strong>Budget disponibile</strong></label>
+    <input type="text" class="form-control" id="euro" name="euro">
+    <div id="euroHelp" class="form-text">Inserisci il numero senza simbolo di €, lascia vuoto se non c'è budget</div>
+  </div>
+  <div class="mb-3">
+    <label for="note" class="col-form-label"><strong>Note</strong></label>
+    <textarea class="form-control" id="note" name="note" rows="3"></textarea>
+    <div id="noteHelp" class="form-text">Campo libero</div>
+  </div>
+  </div>
+  </div>
+  <button type="submit" class="btn btn-warning btn-sm">Inserisci</button>
+</form>
+
+
+{% endblock %}

@@ -10,12 +10,17 @@
       Attive
     </a>
   </li>
+  {% if gestione %}
   <li class="nav-item">
     <a class="nav-link" href="{{ url_for("storico") }}">
       Storico
     </a>
   </li>
-  {% if gestione %}
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("nuova_commessa") }}">
+      Nuova Commessa
+    </a>
+  </li>
   <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
     <span>Amministrazione</span>
   </h6>
@@ -51,10 +56,12 @@
 
 {% block corpo %}
 
-{% with messages = get_flashed_messages() %}
+<h2><strong>Collaboratori</strong></h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    {% for message in messages %}
-      <div class="my-4 alert alert-warning alert-dismissible fade show" role="alert">
+    {% for category, message in messages %}
+      <div class="my-2 alert alert-{{ category }} alert-dismissible fade show" role="alert">
         {{ message }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
@@ -62,7 +69,6 @@
   {% endif %}
 {% endwith %}
 
-<h2><strong>Collaboratori</strong></h2>
 <!-- Button trigger modal -->
 <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#nuovo_collabModal">Nuovo Collaboratore</button>
 
@@ -79,10 +85,15 @@
   <tbody>
   {% for i in utenti %}
     <tr>
-      <th scope="row">{{i.username}}</th>
-      <td>{{i.anagrafica["nome"]}} {{i.anagrafica["cognome"]}}</td>
-      <td>{{i.collaboratore["ruolo"]}}</td>
-      <td><button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#dettagli_collabModal">Dettagli</button></td>
+      <th scope="row">{{i["username"]}}</th>
+      <td>{{i["anagrafica"]["nome"]}} {{i["anagrafica"]["cognome"]}}</td>
+      <td>{{i["collaboratore"]["ruolo"]}}</td>
+      <td>
+    <div class="btn-group" role="group" aria-label="Basic example">
+      <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#dettagli_collabModal" data-bs-dettagli="{{ i | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Dettagli</button>
+      <button type="button" class="btn btn-danger btn-sm"  data-bs-toggle="modal" data-bs-target="#passwd_Modal" data-bs-dettagli="{{ i | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Reset Password</button>
+    </div>
+      </td>
     </tr>
   {% endfor %}
   </tbody>
@@ -142,7 +153,7 @@
           </div>
           </div>
           </div>
-          <button type="submit" class="btn btn-primary">Crea Account</button>
+          <button type="submit" class="btn btn-warning">Crea Account</button>
         </form>
       </div>
     </div>
@@ -150,7 +161,7 @@
 </div>
 
 <div class="modal fade" id="dettagli_collabModal" tabindex="-1" aria-labelledby="dettagli_collabModal" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
         <h1 class="modal-title fs-5" id="dettagli_collabModal">Dettagli Collaboratore</h1>
@@ -158,37 +169,24 @@
       </div>
       <div class="modal-body">
         <form method="post">
-          <input type="hidden" id="id_form" name="id_form" value="nuovo_utente">
-          <div class="row">
-          <div class="col">
+          <input type="hidden" id="id_form" name="id_form" value="modifica_utente">
+          <input type="hidden" id="id_collaboratore" name="id_collaboratore" value="">
           <div class="mb-3">
-            <label for="nome" class="form-label">Nome: </label>
-            <label for="nome" class="form-label">Alberto</label>
+            <label for="nome" class="form-label">Nome</label>
+            <input type="text" class="form-control" id="nome" name="nome">
           </div>
-          </div>
-          <div class="col">
           <div class="mb-3">
-            <label for="cognome" class="form-label">Cognome: </label>
-            <label for="cognome" class="form-label">Calmini</label>
+            <label for="cognome" class="form-label">Cognome</label>
+            <input type="text" class="form-control" id="cognome" name="cognome">
           </div>
+          <div class="mb-3">
+            <label for="mail" class="form-label">Mail</label>
+            <input type="text" class="form-control" id="mail" name="mail">
           </div>
-          </div>
-          <div class="row">
-          <div class="col">
           <div class="mb-3">
             <label for="username" class="form-label">Username: </label>
             <input type="text" class="form-control" id="username" name="username">
           </div>
-          <div class="mb-3">
-            <label for="mail" class="form-label">Mail: </label>
-            <label for="cognome" class="form-label">albycalmini99@gmail.com</label>
-          </div>
-          <div class="mb-3">
-            <label for="passwd" class="form-label">Password</label>
-            <input type="password" class="form-control" id="passwd" name="passwd">
-          </div>
-          </div>
-          <div class="col">
           <label for="ruolo" class="form-label">Ruolo</label>
           <select class="form-select mb-3" aria-label="Tipo Account" id="ruolo" name="ruolo">
             <option selected value="collaboratore">Collaboratore</option>
@@ -199,13 +197,81 @@
             <input type="text" class="form-control" id="costo" name="costo" aria-describedby="costoHelp">
             <div id="costoHelp" class="form-text">Inserire solo il valore numerico senza simbolo di €</div>
           </div>
-          </div>
-          </div>
-          <button type="submit" class="btn btn-primary">Crea Account</button>
+          <button type="submit" class="btn btn-warning">Modifica</button>
         </form>
       </div>
     </div>
   </div>
 </div>
+
+<!--Modal reset passwd-->
+<div class="modal fade" id="passwd_Modal" tabindex="-1" aria-labelledby="passwd_ModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="passwd_ModalLabel">Reset Password</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>ATTENZIONE: </strong>Dovrai informare il collaboratore!</p>
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="modifica_passwd">
+          <input type="hidden" id="username" name="username" value="">
+          <div class="mb-3">
+            <label for="passwd" class="form-label">Nuova Password</label>
+            <input type="text" class="form-control" id="passwd" name="passwd">
+          </div>
+          <button type="submit" class="btn btn-danger btn-sm">Modifica Password</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const dettagli_collabModal = document.getElementById('dettagli_collabModal')
+dettagli_collabModal.addEventListener('show.bs.modal', event => {
+  // Button that triggered the modal
+  const button = event.relatedTarget
+  // Extract info from data-bs-* attributes
+  const dettagli = button.getAttribute('data-bs-dettagli')
+  // If necessary, you could initiate an AJAX request here
+  // and then do the updating in a callback.
+  //
+  // Update the modal's content.
+  const modalTitle = dettagli_collabModal.querySelector('.modal-title')
+  const id_collaboratore = dettagli_collabModal.querySelector('#id_collaboratore')
+  const nome_collaboratore = dettagli_collabModal.querySelector('#nome')
+  const cognome_collaboratore = dettagli_collabModal.querySelector('#cognome')
+  const mail_collaboratore = dettagli_collabModal.querySelector('#mail')
+  const username_collaboratore = dettagli_collabModal.querySelector('#username')
+  const ruolo_collaboratore = dettagli_collabModal.querySelector('#ruolo')
+  const costo_collaboratore = dettagli_collabModal.querySelector('#costo')
+  // modalTitle.textContent = `Elimina ${}`
+  id_collaboratore.value = `${JSON.parse(dettagli)["id"]}`
+  nome_collaboratore.value = `${JSON.parse(dettagli)["anagrafica"]["nome"]}`
+  cognome_collaboratore.value = `${JSON.parse(dettagli)["anagrafica"]["cognome"]}`
+  mail_collaboratore.value = `${JSON.parse(dettagli)["anagrafica"]["mail"]}`
+  username_collaboratore.value = `${JSON.parse(dettagli)["username"]}`
+  ruolo_collaboratore.value = `${JSON.parse(dettagli)["collaboratore"]["ruolo"]}`
+  costo_collaboratore.value = `${JSON.parse(dettagli)["collaboratore"]["costo"]}`
+})
+
+const modifica_passwd = document.getElementById('passwd_Modal')
+modifica_passwd.addEventListener('show.bs.modal', event => {
+  // Button that triggered the modal
+  const button = event.relatedTarget
+  // Extract info from data-bs-* attributes
+  const dettagli = button.getAttribute('data-bs-dettagli')
+  // If necessary, you could initiate an AJAX request here
+  // and then do the updating in a callback.
+  //
+  // Update the modal's content.
+  const modalTitle = modifica_passwd.querySelector('.modal-title')
+  const username = modifica_passwd.querySelector('#username')
+  modalTitle.textContent = `Reset Password ${JSON.parse(dettagli)["username"]}`
+  username.value = `${JSON.parse(dettagli)["username"]}`
+})
+</script>
 
 {% endblock %}
