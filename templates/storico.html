@@ -92,7 +92,7 @@
     {% if i["durata"]["fine"] %}
     {% if not anno or i["durata"]["inizio"][0:4] == anno %}
     <tr>
-      <td><strong>#{{ i["numero"] }}</strong></td>
+      <td><strong>{{ i["numero"] }}</strong></td>
       <td>{{ i["nome"] }}</td>
       <td>{{ i["cliente"]["nome"] }}</td>
       <td>{{ i["durata"]["inizio"][8:10] }}/{{ i["durata"]["inizio"][5:7] }}/{{ i["durata"]["inizio"][0:4] }}</td>

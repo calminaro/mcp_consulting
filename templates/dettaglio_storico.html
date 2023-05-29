@@ -59,11 +59,11 @@
 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{{ url_for("storico") }}">Storico</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Dettaglio Commessa #{{ commessa["numero"] }}</li>
+    <li class="breadcrumb-item active" aria-current="page">Dettaglio Commessa {{ commessa["numero"] }}</li>
   </ol>
 </nav>
 
-<h5 class="my-2"><strong>#{{ commessa["numero"] }} - {{ commessa["nome"] }} - {{ commessa["cliente"]["nome"] }}</strong>
+<h5 class="my-2"><strong>{{ commessa["numero"] }} - {{ commessa["nome"] }} - {{ commessa["cliente"]["nome"] }}</strong>
 <a type="button" class="btn btn-warning btn-sm" href="{{ url_for("crea_report", id_commessa=commessa["id"]) }}">Scarica report Excel</a>
 </h5>
 
@@ -80,6 +80,7 @@
   <thead>
     <tr>
       <th scope="col">Data apertura</th>
+      <th scope="col">Data chiusura</th>
       <th scope="col">Monte ore contratto</th>
       <th scope="col">Budget [€]</th>
       <th scope="col">Guadagno [€]</th>
@@ -89,27 +90,28 @@
   </thead>
   <tbody>
     <tr>
-      <th scope="row">{{ commessa["durata"]["inizio"][8:10] }}/{{ commessa["durata"]["inizio"][5:7] }}/{{ commessa["durata"]["inizio"][0:4] }}</th>
-          {% if commessa["specifiche"]["budget_ore"] == 0 %}
-          <td>--</td>
-          {% else %}
-          <td>{{ commessa["specifiche"]["budget_ore"] }}</td>
-          {% endif %}
-          {% if commessa["specifiche"]["budget_euro"] == 0 %}
-          <td>--</td>
-          <td>--</td>
-          {% else %}
-          <td>{{ commessa["specifiche"]["budget_euro"] }}</td>
-          <td>{{ commessa["specifiche"]["budget_euro"] - commessa["specifiche"]["euro_spesi"] }}</td>
-          {% endif %}
+      <td>{{ commessa["durata"]["inizio"][8:10] }}/{{ commessa["durata"]["inizio"][5:7] }}/{{ commessa["durata"]["inizio"][0:4] }}</td>
+      <td>{{ commessa["durata"]["fine"][8:10] }}/{{ commessa["durata"]["fine"][5:7] }}/{{ commessa["durata"]["fine"][0:4] }}</td>
+      {% if commessa["specifiche"]["budget_ore"] == 0 %}
+      <td>--</td>
+      {% else %}
+      <td>{{ commessa["specifiche"]["budget_ore"] }}</td>
+      {% endif %}
+      {% if commessa["specifiche"]["budget_euro"] == 0 %}
+      <td>--</td>
+      <td>--</td>
+      {% else %}
+      <td>{{ commessa["specifiche"]["budget_euro"] }}</td>
+      <td>{{ commessa["specifiche"]["budget_euro"] - commessa["specifiche"]["euro_spesi"] }}</td>
+      {% endif %}
 
-          {% if commessa["specifiche"]["budget_ore"] == 0 %}
-          <td>--</td>
-          {% else %}
-          <td>{{ commessa["specifiche"]["budget_ore"] - commessa["specifiche"]["ore_lavorate"] }}</td>
-          {% endif %}
+      {% if commessa["specifiche"]["budget_ore"] == 0 %}
+      <td>--</td>
+      {% else %}
+      <td>{{ commessa["specifiche"]["budget_ore"] - commessa["specifiche"]["ore_lavorate"] }}</td>
+      {% endif %}
 
-          <td>{{ commessa["specifiche"]["project_manager"]["nome"] }}</td>
+      <td>{{ commessa["specifiche"]["project_manager"]["nome"] }}</td>
     </tr>
   </tbody>
 </table>

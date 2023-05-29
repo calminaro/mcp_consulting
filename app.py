@@ -162,7 +162,7 @@ def get_costo(tmp_id, durata):
     costo = 0.0
     tmp_durata = float(durata["ore"])
     if durata["trasferta"]:
-        costo += 100
+        costo += cr["trasferta"]
         tmp_durata = 8.0
     user = User.query.filter_by(id=tmp_id).first()
     user_costo = float(user.collaboratore["costo"])

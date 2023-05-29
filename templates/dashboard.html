@@ -82,9 +82,9 @@
   {% if not i["durata"]["fine"] %}
     <li class="nav-item" role="presentation">
     {% if pagina|string == i["id"]|string %}
-      <button class="nav-link active" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="true">{{ i["numero"] }}</button>
+      <button class="nav-link active" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="true">{{ i["numero"] }} - {{ i["nome"] }}</button>
     {% else %}
-      <button class="nav-link" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="false">{{ i["numero"] }}</button>
+      <button class="nav-link" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="false">{{ i["numero"] }} - {{ i["nome"] }}</button>
     {% endif %}
     </li>
   {% endif %}
@@ -505,12 +505,12 @@ function f_guadagno() {
           </div>
           <div class="mb-3">
             <label for="ore" class="col-form-label"><strong>Ore disponibili</strong></label>
-            <input type="text" class="form-control" id="ore" name="ore">
+            <input type="number" inputmode="numeric" class="form-control" id="ore" name="ore">
             <div id="oreHelp" class="form-text">Inserisci il numero di ore, lascia vuoto se non c'è un limite</div>
           </div>
           <div class="mb-3">
             <label for="euro" class="col-form-label"><strong>Budget disponibile</strong></label>
-            <input type="text" class="form-control" id="euro" name="euro">
+            <input type="number" inputmode="numeric" class="form-control" id="euro" name="euro">
             <div id="euroHelp" class="form-text">Inserisci il numero senza simbolo di €, lascia vuoto se non c'è budget</div>
           </div>
           <div class="mb-3">
@@ -570,7 +570,7 @@ function f_guadagno() {
           </div>
           <div class="mb-3">
             <label for="message-text" class="col-form-label">Ore</label>
-            <input type="text" class="form-control" id="ore" name="ore">
+            <input type="number" inputmode="numeric" step="any" class="form-control" id="ore" name="ore">
             <div id="oreHelp" class="form-text">Inserisci il numero es: "3.5" = 3h e 30min</div>
           </div>
           <div class="mb-3">
