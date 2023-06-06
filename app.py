@@ -565,6 +565,13 @@ def clienti():
                 flash("Eliminato con successo!", "success")
     return render_template("clienti.html", gestione=gestisce(), clienti=get_clienti())
 
+@app.route("/tipologie", methods=("GET", "POST"))
+@login_required
+def tipologie():
+    if not gestisce():
+        return redirect(url_for("dashboard"))
+    return render_template("tipologie.html", gestione=gestisce())
+
 @app.route("/dettaglio_commessa/<string:id_commessa>")
 @login_required
 def dettaglio_storico(id_commessa):

@@ -80,8 +80,7 @@
   <div class="row">
     <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
       <div class="position-sticky pt-3 sidebar-sticky">
-        <span class="badge text-bg-success mx-3">{{ current_user.anagrafica["nome"] }} {{ current_user.anagrafica["cognome"] }}</span>
-        <span class="badge text-bg-success">{{ current_user.collaboratore["ruolo"] }}</span>
+        <p class="mx-3"><em>Benvenuto <span class="badge text-bg-success">{{ current_user.anagrafica["nome"] }} {{ current_user.anagrafica["cognome"] }}</span></em></p>
         {% block menu %}
         {% endblock %}
       </div>

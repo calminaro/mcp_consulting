@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block menu %}
+<ul class="nav flex-column">
+  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+    <span><strong>Commesse</strong></span>
+  </h6>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("dashboard") }}">
+      Attive
+    </a>
+  </li>
+  {% if gestione %}
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("storico") }}">
+      Storico
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("nuova_commessa") }}">
+      Nuova Commessa
+    </a>
+  </li>
+  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+    <span><strong>Amministrazione</strong></span>
+  </h6>
+  <li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="{{ url_for("collaboratori") }}">
+      Gestione Database
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("report") }}">
+      Report
+    </a>
+  </li>
+  {% endif %}
+  <hr>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("account") }}">
+      Account
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("logout") }}">
+      Logout
+    </a>
+  </li>
+</ul>
+{% endblock %}
+
+{% block corpo %}
+
+<h2 class="text-center"><strong>GESTIONE DATABASE</strong></h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="my-4 alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<ul class="nav nav-tabs">
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("collaboratori") }}">Collaboratori</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("clienti") }}">Clienti</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="{{ url_for("tipologie") }}">Tipi Commesse</a>
+  </li>
+</ul>
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-warning btn-sm my-2">Nuova Tipologia</button>
+
+<div class="table-responsive">
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Nome</th>
+      <th scope="col">Azioni</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Piping</td>
+      <td>
+        <div class="btn-group" role="group" aria-label="Azioni">
+        <button type="button" class="btn btn-warning btn-sm">Modifica</button>
+        <button type="button" class="btn btn-danger btn-sm">Elimina</button>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Supporti</td>
+      <td>
+        <div class="btn-group" role="group" aria-label="Azioni">
+        <button type="button" class="btn btn-warning btn-sm">Modifica</button>
+        <button type="button" class="btn btn-danger btn-sm">Elimina</button>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Stress Analysis</td>
+      <td>
+        <div class="btn-group" role="group" aria-label="Azioni">
+        <button type="button" class="btn btn-warning btn-sm">Modifica</button>
+        <button type="button" class="btn btn-danger btn-sm">Elimina</button>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+{% endblock %}

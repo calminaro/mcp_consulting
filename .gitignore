@@ -2,4 +2,3 @@ credenziali.json
 *.db
 creaDB.py
 __pycache__
-

@@ -3,7 +3,7 @@
 {% block menu %}
 <ul class="nav flex-column">
   <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-    <span>Commesse</span>
+    <span><strong>Commesse</strong></span>
   </h6>
   <li class="nav-item">
     <a class="nav-link" href="{{ url_for("dashboard") }}">
@@ -22,16 +22,11 @@
     </a>
   </li>
   <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-    <span>Amministrazione</span>
+    <span><strong>Amministrazione</strong></span>
   </h6>
   <li class="nav-item">
     <a class="nav-link active" aria-current="page" href="{{ url_for("collaboratori") }}">
-      Collaboratori
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("clienti") }}">
-      Clienti
+      Gestione Database
     </a>
   </li>
   <li class="nav-item">
@@ -56,7 +51,7 @@
 
 {% block corpo %}
 
-<h2><strong>Collaboratori</strong></h2>
+<h2 class="text-center"><strong>GESTIONE DATABASE</strong></h2>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
@@ -69,8 +64,20 @@
   {% endif %}
 {% endwith %}
 
+<ul class="nav nav-tabs">
+  <li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="{{ url_for("collaboratori") }}">Collaboratori</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("clienti") }}">Clienti</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for("tipologie") }}">Tipi Commesse</a>
+  </li>
+</ul>
+
 <!-- Button trigger modal -->
-<button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#nuovo_collabModal">Nuovo Collaboratore</button>
+<button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#nuovo_collabModal">Nuovo Collaboratore</button>
 
 <div class="table-responsive">
 <table class="table">

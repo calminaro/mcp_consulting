@@ -3,7 +3,7 @@
 {% block menu %}
 <ul class="nav flex-column">
   <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-    <span>Commesse</span>
+    <span><strong>Commesse</strong></span>
   </h6>
   <li class="nav-item">
     <a class="nav-link" href="{{ url_for("dashboard") }}">
@@ -22,16 +22,11 @@
     </a>
   </li>
   <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-    <span>Amministrazione</span>
+    <span><strong>Amministrazione</strong></span>
   </h6>
   <li class="nav-item">
     <a class="nav-link" href="{{ url_for("collaboratori") }}">
-      Collaboratori
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("clienti") }}">
-      Clienti
+      Gestione Database
     </a>
   </li>
   <li class="nav-item">
@@ -59,11 +54,24 @@
 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{{ url_for("storico") }}">Storico</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Dettaglio Commessa {{ commessa["numero"] }}</li>
+    <li class="breadcrumb-item active" aria-current="page">
+      Dettaglio Commessa
+      {% if commessa["tipo"] == "interna" %}
+      {{ commessa["numero"] }}
+      {% elif commessa["tipo"] == "esterna" %}
+      {{ commessa["durata"]["inizio"][2:4] }}{{ commessa["numero"] }}
+      {% endif %}
+      </li>
   </ol>
 </nav>
 
-<h5 class="my-2"><strong>{{ commessa["numero"] }} - {{ commessa["nome"] }} - {{ commessa["cliente"]["nome"] }}</strong>
+<h5 class="my-2"><strong>
+{% if commessa["tipo"] == "interna" %}
+{{ commessa["numero"] }}
+{% elif commessa["tipo"] == "esterna" %}
+{{ commessa["durata"]["inizio"][2:4] }}{{ commessa["numero"] }}
+{% endif %}
+- {{ commessa["nome"] }} - {{ commessa["cliente"]["nome"] }}</strong>
 <a type="button" class="btn btn-warning btn-sm" href="{{ url_for("crea_report", id_commessa=commessa["id"]) }}">Scarica report Excel</a>
 </h5>
 
