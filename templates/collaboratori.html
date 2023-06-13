@@ -66,7 +66,7 @@
 
 <ul class="nav nav-tabs">
   <li class="nav-item">
-    <a class="nav-link active" aria-current="page" href="{{ url_for("collaboratori") }}">Collaboratori</a>
+    <a class="nav-link active" aria-current="page" href="{{ url_for("collaboratori") }}">Collaboratori e Manager</a>
   </li>
   <li class="nav-item">
     <a class="nav-link" href="{{ url_for("clienti") }}">Clienti</a>
@@ -77,7 +77,7 @@
 </ul>
 
 <!-- Button trigger modal -->
-<button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#nuovo_collabModal">Nuovo Collaboratore</button>
+<button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#nuovo_collabModal">Nuovo Collaboratore/Manager</button>
 
 <div class="table-responsive">
 <table class="table">
@@ -112,7 +112,7 @@
   <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="nuovo_collabModal">Nuovo Collaboratore</h1>
+        <h1 class="modal-title fs-5" id="nuovo_collabModal">Nuovo Collaboratore/Manager</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -171,7 +171,7 @@
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="dettagli_collabModal">Dettagli Collaboratore</h1>
+        <h1 class="modal-title fs-5" id="dettagli_collabModal">Dettagli Collaboratore/Manager</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
