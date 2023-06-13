@@ -292,6 +292,7 @@ def dati_mcp(tipo):
                 ore_lavorate += float(tmp_lavorazione["durata"]["ore"])
                 euro_spesi += tmp_lavorazione["costo"]
                 tmp_lavorazioni.append(tmp_lavorazione)
+            tmp_lavorazioni.sort(key = lambda x: datetime.datetime.strptime(x["durata"]["data"], '%Y-%m-%d'))
             tmp_specifiche = {
                     "budget_ore": float(json.loads(commessa[5])["budget_ore"]),
                     "budget_euro": float(json.loads(commessa[5])["budget_euro"]),
@@ -355,7 +356,7 @@ def dashboard():
                 }
             if dati_validi:
                 insert_edit_lavorazione(tmp_dati)
-                flash("Inserito con successo!", "success")
+                flash("Inserimento avvenuto con successo!", "success")
             else:
                 flash("Dati errati.", "warning")
             pagina = tmp_dati["id_commessa"]
@@ -428,7 +429,7 @@ def dashboard():
                 flash("ATTENZIONE: Questa commessa è esterna, non può avere MCP Consulting come cliente", "warning")
             if dati_validi:
                 insert_edit_commessa(tmp_dati)
-                flash("Modificato con successo!", "success")
+                flash("Commessa modificata con successo!", "success")
             pagina = tmp_dati["id_commessa"]
         elif request.form["id_form"] == "elimina_commessa":
             tmp_dati = {
@@ -436,7 +437,7 @@ def dashboard():
                 "id_commessa": request.form["id_commessa"]
                 }
             insert_edit_commessa(tmp_dati)
-            flash("Eliminato con successo!", "success")
+            flash("Commessa eliminata con successo!", "success")
         elif request.form["id_form"] == "chiudi_commessa":
             tmp_dati = {
                 "form": request.form["id_form"],
@@ -444,7 +445,7 @@ def dashboard():
                 "data": request.form["data"]
                 }
             insert_edit_commessa(tmp_dati)
-            flash("Chiuso con successo!", "success")
+            flash("Commessa chiusa con successo!", "success")
     return render_template("dashboard.html", gestione=gestisce(), dati=dati_mcp("commesse_complete"), clienti=get_clienti(), utenti=User.query.all(), pagina=pagina)
 
 @app.route("/nuova_commessa", methods=("GET", "POST"))
@@ -599,6 +600,7 @@ def dettaglio_storico(id_commessa):
         ore_lavorate += float(tmp_lavorazione["durata"]["ore"])
         euro_spesi += tmp_lavorazione["costo"]
         tmp_lavorazioni.append(tmp_lavorazione)
+    tmp_lavorazioni.sort(key = lambda x: datetime.datetime.strptime(x["durata"]["data"], '%Y-%m-%d'))
     tmp_specifiche = {
             "budget_ore": float(json.loads(commesse[0][5])["budget_ore"]),
             "budget_euro": float(json.loads(commesse[0][5])["budget_euro"]),
@@ -798,6 +800,7 @@ def crea_report(id_commessa):
         ore_lavorate += float(tmp_lavorazione["durata"]["ore"])
         euro_spesi += tmp_lavorazione["costo"]
         tmp_lavorazioni.append(tmp_lavorazione)
+    tmp_lavorazioni.sort(key = lambda x: datetime.datetime.strptime(x["durata"]["data"], '%Y-%m-%d'))
     tmp_specifiche = {
             "budget_ore": float(json.loads(commesse[0][5])["budget_ore"]),
             "budget_euro": float(json.loads(commesse[0][5])["budget_euro"]),
