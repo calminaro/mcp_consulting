@@ -1,0 +1,617 @@
+{% extends "base.html" %}
+
+{% block corpo %}
+
+<h2 class="text-center"><strong>OFFERTE</strong></h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="my-2 alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+
+<ul class="nav nav-tabs" id="myTab" role="tablist">
+  <li class="nav-item" role="presentation">
+  {% if pagina == "riepilogo" %}
+    <button class="nav-link active" id="base-tab" data-bs-toggle="tab" data-bs-target="#base-tab-pane" type="button" role="tab" aria-controls="base-tab-pane" aria-selected="true">Offerte</button>
+    {% else %}
+    <button class="nav-link" id="base-tab" data-bs-toggle="tab" data-bs-target="#base-tab-pane" type="button" role="tab" aria-controls="base-tab-pane" aria-selected="false">Offerte</button>
+    {% endif %}
+  </li>
+{% for i in dati %}
+  {% if not i["versioni"]["chiusa"] %}
+    <li class="nav-item" role="presentation">
+    {% if pagina|string == i["id"]|string %}
+      <button class="nav-link active" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="true">
+        {{ i["numero"] }}
+      </button>
+    {% else %}
+      <button class="nav-link" id="{{ i["id"] }}-tab" data-bs-toggle="tab" data-bs-target="#{{ i["id"] }}-tab-pane" type="button" role="tab" aria-controls="{{ i["id"] }}-tab-pane" aria-selected="false">
+        {{ i["numero"] }}
+      </button>
+    {% endif %}
+    </li>
+  {% endif %}
+{% endfor %}
+</ul>
+
+<div class="tab-content" id="myTabContent">
+  {% if pagina == "riepilogo" %}
+  <div class="tab-pane fade show active" id="base-tab-pane" role="tabpanel" aria-labelledby="base-tab" tabindex="0">
+  {% else %}
+  <div class="tab-pane fade" id="base-tab-pane" role="tabpanel" aria-labelledby="base-tab" tabindex="0">
+  {% endif %}
+
+  <div class="row">
+    <div class="col-md-10">
+      <p class="my-2">
+      Qui trovi l'elenco delle commesse attive, clicca sul pulsante <strong>Inserisci</strong> per inserire delle ore sulla relativa commessa.
+      </p>
+    </div>
+    <div class="col">
+      {% if gestione %}
+      <button type="button" class="btn btn-warning btn-sm my-2 float-end" onclick="mostra_filtri()"><span class="material-symbols-outlined">search</span></button>
+      {% endif %}
+    </div>
+  </div>
+
+<div class="table-responsive">
+<table class="table" id="commesse_attive">
+  <thead>
+    <tr>
+      <th scope="col">ID Offerta<br><input type="text" class="form-control form-control-sm" id="s_id" onkeyup="f_id()" placeholder=""></th>
+      <th scope="col">Cliente<br><input type="text" class="form-control form-control-sm" id="s_cliente" onkeyup="f_cliente()" placeholder=""></th>
+      {% if gestione %}
+      <th scope="col">Data creazione<br><input type="text" class="form-control form-control-sm" id="s_data_a" onkeyup="f_data_a()" placeholder=""></th>
+      <th scope="col">Ordine Riferimento<br><input type="text" class="form-control form-control-sm" id="s_rif_ord" onkeyup="f_rif_ord()" placeholder=""></th>
+      {% endif %}
+      <th scope="col"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for i in dati %}
+    {% if not i["versioni"]["chiusa"] %}
+    <tr>
+      <td>{{ i["numero"] }}</td>
+      <td>{{ i["cliente"]["nome"] }}</td>
+      {% if gestione %}
+      <td>{{ i["versioni"]["data"][8:10] }}/{{ i["versioni"]["data"][5:7] }}/{{ i["versioni"]["data"][0:4] }}</td>
+      <td>{{ i["ordine_rif"] }}</td>
+      {% endif %}
+      <td><button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-numero_commessa="{{ i["numero"] }}" data-bs-tmp_dati="">Inserisci ore</button></td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+  </tbody>
+</table>
+
+
+<script>
+var s_id = document.getElementById("s_id");
+var s_cliente = document.getElementById("s_cliente");
+var s_data_a = document.getElementById("s_data_a");
+var s_budget = document.getElementById("s_rif_ord");
+
+s_id.style.display = "none";
+s_cliente.style.display = "none";
+s_data_a.style.display = "none";
+s_rif_ord.style.display = "none";
+
+function mostra_filtri() {
+  var s_id = document.getElementById("s_id");
+  var s_cliente = document.getElementById("s_cliente");
+  var s_data_a = document.getElementById("s_data_a");
+  var s_budget = document.getElementById("s_rif_ord");
+  if (s_id.style.display === "none") {
+    s_id.style.display = "block";
+    s_cliente.style.display = "block";
+    s_data_a.style.display = "block";
+    s_rif_ord.style.display = "block";
+  } else {
+    s_id.style.display = "none";
+    s_cliente.style.display = "none";
+    s_data_a.style.display = "none";
+    s_rif_ord.style.display = "none";
+  }
+}
+
+function f_id() {
+  // Declare variables
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementById("s_id");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("commesse_attive");
+  tr = table.getElementsByTagName("tr");
+
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[0];
+    if (td) {
+      txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
+
+function f_cliente() {
+  // Declare variables
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementById("s_cliente");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("commesse_attive");
+  tr = table.getElementsByTagName("tr");
+
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[2];
+    if (td) {
+      txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
+
+function f_data_a() {
+  // Declare variables
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementById("s_data_a");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("commesse_attive");
+  tr = table.getElementsByTagName("tr");
+
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[3];
+    if (td) {
+      txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
+
+function f_rif_ord() {
+  // Declare variables
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementById("s_rif_ord");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("commesse_attive");
+  tr = table.getElementsByTagName("tr");
+
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[6];
+    if (td) {
+      txtValue = td.textContent || td.innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
+}
+
+</script>
+
+
+</div>
+  </div>
+{% for i in dati %}
+  {% if not i["versioni"]["chiusa"] %}
+    {% if pagina|string == i["id"]|string %}
+    <div class="tab-pane fade show active" id="{{ i["id"] }}-tab-pane" role="tabpanel" aria-labelledby="{{ i["id"] }}-tab" tabindex="0">
+    {% else %}
+    <div class="tab-pane fade" id="{{ i["id"] }}-tab-pane" role="tabpanel" aria-labelledby="{{ i["id"] }}-tab" tabindex="0">
+    {% endif %}
+    <h5 class="my-2"><strong>{{ i["numero"] }} - {{ i["cliente"]["nome"] }}</strong>
+
+    {% if gestione %}
+    <div class="btn-group" role="group" aria-label="Basic example">
+      <button type="button" class="btn btn-success btn-sm my-2" data-bs-toggle="modal" data-bs-target="#chiudi_commesseModal" data-bs-id_commessa="{{ i["id"] }}">Chiudi</button>
+      <button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#commesseModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ i | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Modifica</button>
+      <button type="button" class="btn btn-danger btn-sm my-2" data-bs-toggle="modal" data-bs-target="#eliminacommesseModal" data-bs-id_commessa="{{ i["id"] }}">Elimina</button>
+    </div>
+    {% endif %}
+
+    </h5>
+    <div class="row">
+      <p>
+      <strong>Data creazione: </strong>{{ i["versioni"]["data"][8:10] }}/{{ i["versioni"]["data"][5:7] }}/{{ i["versioni"]["data"][0:4] }}
+      <br>
+      <strong>Ordine riferimento: </strong>{{ i["ordine_rif"] }}
+      <br>
+      <strong>Note: </strong>{{ i["note"] }}
+      </p>
+    </div>
+
+    <button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#upload_fileModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-numero_commessa="{{ i["numero"] }}" data-bs-tmp_dati="">Aggiungi File</button>
+
+    <hr>
+
+    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-numero_commessa="{{ i["numero"] }}" data-bs-tmp_dati="">Inserisci ore</button>
+
+    </div>
+  {% endif %}
+{% endfor %}
+</div>
+
+<!--Modal per le commesse-->
+<div class="modal fade" id="commesseModal" tabindex="-1" aria-labelledby="commesseModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="commesseModalLabel">Inserisci nuova commessa</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="inserisci_commessa">
+          <input type="hidden" id="id_commessa" name="id_commessa" value="">
+          <div class="row">
+          <div class="col">
+          <div class="mb-3">
+            <label for="nome" class="col-form-label"><strong>Nome Commessa</strong></label>
+            <input type="text" class="form-control" id="nome" name="nome">
+          </div>
+          <div class="mb-3">
+            <label for="cliente" class="col-form-label"><strong>Cliente</strong></label>
+            <select class="form-select" aria-label="Cliente" id="cliente" name="cliente">
+              {% for i in clienti %}
+              <option value="{{ i[0] }}">{{ i[1] }}</option>
+              {% endfor %}
+            </select>
+            <div id="clienteHelp" class="form-text">Se commessa interna selezionare "MCP Consulting"</div>
+          </div>
+          <div class="mb-3">
+            <label for="project_manager" class="col-form-label"><strong>Project Manager</strong></label>
+            <select class="form-select" aria-label="Project Manager" id="project_manager" name="project_manager">
+              {% for i in utenti %}
+              {% if i.collaboratore["ruolo"] == "manager" %}
+              <option value="{{i.id}}">{{i.anagrafica["nome"]}} {{i.anagrafica["cognome"]}}</option>
+              {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="col-form-label"><strong>Tipologia</strong></label>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="1" id="tipo_supporti" name="tipo_supporti">
+              <label class="form-check-label" for="tipo_supporti">Supporti</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="2" id="tipo_piping" name="tipo_piping">
+              <label class="form-check-label" for="tipo_piping">Piping</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="3" id="tipo_stressAnalysis" name="tipo_stressAnalysis">
+              <label class="form-check-label" for="tipo_stressAnalysis">Stress Analysis</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="0" id="tipo_altro" name="tipo_altro">
+              <label class="form-check-label" for="tipo_altro">Altro</label>
+            </div>
+          </div>
+          </div>
+          <div class="col">
+          <div class="mb-3">
+            <label for="data" class="col-form-label"><strong>Data apertura commessa</strong></label>
+            <input type="date" class="form-control" id="data" name="data">
+          </div>
+          <div class="mb-3">
+            <label for="ore" class="col-form-label"><strong>Ore disponibili</strong></label>
+            <input type="number" inputmode="numeric" class="form-control" id="ore" name="ore">
+            <div id="oreHelp" class="form-text">Inserisci il numero di ore, lascia vuoto se non c'è un limite</div>
+          </div>
+          <div class="mb-3">
+            <label for="euro" class="col-form-label"><strong>Budget disponibile</strong></label>
+            <input type="number" inputmode="numeric" class="form-control" id="euro" name="euro">
+            <div id="euroHelp" class="form-text">Inserisci il numero senza simbolo di €, lascia vuoto se non c'è budget</div>
+          </div>
+          <div class="mb-3">
+            <label for="note" class="col-form-label"><strong>Note</strong></label>
+            <textarea class="form-control" id="note" name="note" rows="2"></textarea>
+            <div id="noteHelp" class="form-text">Campo libero</div>
+          </div>
+          </div>
+          </div>
+          <button type="submit" class="btn btn-warning btn-sm">Inserisci</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Modal per caricare file-->
+<div class="modal fade" id="upload_fileModal" tabindex="-1" aria-labelledby="upload_fileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="upload_fileModalLabel">Carica File</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="POST" enctype="multipart/form-data">
+          <input type="hidden" id="id_form" name="id_form" value="inserisci_file">
+          <input type="hidden" id="id_offerta" name="id_offerta" value="">
+          <div class="mb-3">
+              <input type="file" class="form-control" id="file" name="file">
+            </div>
+        <button type="submit" class="btn btn-warning btn-sm">Carica</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Modal per le lavorazioni-->
+<div class="modal fade" id="lavorazioniModal" tabindex="-1" aria-labelledby="lavorazioniModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="lavorazioniModalLabel">Inserisci</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="inserisci_lavorazione">
+          <input type="hidden" id="id_commessa" name="id_commessa" value="">
+          <input type="hidden" id="id_lavorazione" name="id_lavorazione" value="">
+          <div class="mb-3">
+            <label for="recipient-name" class="col-form-label">Data</label>
+            <input type="date" class="form-control" id="data" name="data">
+          </div>
+          <div class="mb-3">
+            <label for="message-text" class="col-form-label">Ore</label>
+            <input type="number" inputmode="numeric" step="any" class="form-control" id="ore" name="ore">
+            <div id="oreHelp" class="form-text">Inserisci il numero es: "3.5" = 3h e 30min</div>
+          </div>
+          <div class="mb-3">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="trasferta" id="trasferta" name="trasferta">
+              <label class="form-check-label" for="trasferta">Trasferta</label>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-warning btn-sm">Inserisci</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Modal eliminare lavorazioni-->
+<div class="modal fade" id="eliminalavorazioniModal" tabindex="-1" aria-labelledby="eliminalavorazioniModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="eliminalavorazioniModalLabel">Elimina inserimento</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>ATTENZIONE: </strong>Non sarà possibile recuperare i dati eliminati!</p>
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="elimina_lavorazione">
+          <input type="hidden" id="id_commessa" name="id_commessa" value="">
+          <input type="hidden" id="id_lavorazione" name="id_lavorazione" value="">
+          <button type="submit" class="btn btn-danger btn-sm">Elimina</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Modal eliminare commesse-->
+<div class="modal fade" id="eliminacommesseModal" tabindex="-1" aria-labelledby="eliminacommesseModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="eliminacommesseModalLabel">Elimina Commessa</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>ATTENZIONE: </strong>Non sarà possibile recuperare i dati eliminati!
+        <br>
+        Continua solo se la Commessa è stata creata per errore.</p>
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="elimina_commessa">
+          <input type="hidden" id="id_commessa" name="id_commessa" value="">
+          <button type="submit" class="btn btn-danger btn-sm">Elimina</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const lavorazioniModal = document.getElementById('lavorazioniModal')
+lavorazioniModal.addEventListener('show.bs.modal', event => {
+  // Button that triggered the modal
+  const button = event.relatedTarget
+  // Extract info from data-bs-* attributes
+  const id_commessa = button.getAttribute('data-bs-id_commessa')
+  const numero_commessa = button.getAttribute('data-bs-numero_commessa')
+  const tmp_dati = button.getAttribute('data-bs-tmp_dati')
+  // If necessary, you could initiate an AJAX request here
+  // and then do the updating in a callback.
+  //
+  // Update the modal's content.
+  const modalTitle = lavorazioniModal.querySelector('.modal-title')
+  const id_form = lavorazioniModal.querySelector('#id_form')
+  const in_id_commessa = lavorazioniModal.querySelector('#id_commessa')
+  const id_lavorazione = lavorazioniModal.querySelector('#id_lavorazione')
+  const data = lavorazioniModal.querySelector('#data')
+  const ore = lavorazioniModal.querySelector('#ore')
+  const trasferta = lavorazioniModal.querySelector('#trasferta')
+  in_id_commessa.value = `${id_commessa}`
+  if (tmp_dati == "") {
+  modalTitle.textContent = `Inserisci ore sull'offerta ${numero_commessa}`
+  id_form.value = `inserisci_lavorazione`
+  id_lavorazione.value = ``
+  data.value = ``
+  ore.value = ``
+  trasferta.checked = false
+
+  } else {
+  modalTitle.textContent = `Modifica inserimento`
+  id_form.value = `modifica_lavorazione`
+  id_lavorazione.value = `${JSON.parse(tmp_dati)["id"]}`
+  data.value = `${JSON.parse(tmp_dati)["durata"]["data"]}`
+  ore.value = `${JSON.parse(tmp_dati)["durata"]["ore"]}`
+  tipo.value = `${JSON.parse(tmp_dati)["tipo"]["id"]}`
+  trasferta.checked = JSON.parse(tmp_dati)["durata"]["trasferta"]
+
+  }
+})
+
+const eliminalavorazioniModal = document.getElementById('eliminalavorazioniModal')
+eliminalavorazioniModal.addEventListener('show.bs.modal', event => {
+  // Button that triggered the modal
+  const button = event.relatedTarget
+  // Extract info from data-bs-* attributes
+  const id_commessa = button.getAttribute('data-bs-id_commessa')
+  const tmp_dati = button.getAttribute('data-bs-tmp_dati')
+  // If necessary, you could initiate an AJAX request here
+  // and then do the updating in a callback.
+  //
+  // Update the modal's content.
+  const modalTitle = eliminalavorazioniModal.querySelector('.modal-title')
+  const in_id_commessa = eliminalavorazioniModal.querySelector('#id_commessa')
+  const id_lavorazione = eliminalavorazioniModal.querySelector('#id_lavorazione')
+  in_id_commessa.value = `${id_commessa}`
+  // modalTitle.textContent = `Elimina`
+  id_lavorazione.value = `${JSON.parse(tmp_dati)["id"]}`
+})
+
+const commesseModal = document.getElementById('commesseModal')
+commesseModal.addEventListener('show.bs.modal', event => {
+  // Button that triggered the modal
+  const button = event.relatedTarget
+  // Extract info from data-bs-* attributes
+  const id_commessa = button.getAttribute('data-bs-id_commessa')
+  const tmp_dati = button.getAttribute('data-bs-tmp_dati')
+  // If necessary, you could initiate an AJAX request here
+  // and then do the updating in a callback.
+  //
+  // Update the modal's content.
+  const modalTitle = commesseModal.querySelector('.modal-title')
+  const id_form = commesseModal.querySelector('#id_form')
+  const in_id_commessa = commesseModal.querySelector('#id_commessa')
+  const nome = commesseModal.querySelector('#nome')
+  const cliente = commesseModal.querySelector('#cliente')
+  const data = commesseModal.querySelector('#data')
+  const ore = commesseModal.querySelector('#ore')
+  const euro = commesseModal.querySelector('#euro')
+  const project_manager = commesseModal.querySelector('#project_manager')
+  const note = commesseModal.querySelector('#note')
+  const tipo_supporti = commesseModal.querySelector('#tipo_supporti')
+  const tipo_piping = commesseModal.querySelector('#tipo_piping')
+  const tipo_stressAnalysis = commesseModal.querySelector('#tipo_stressAnalysis')
+  const tipo_altro = commesseModal.querySelector('#tipo_altro')
+  in_id_commessa.value = `${id_commessa}`
+  if (tmp_dati == "") {
+  modalTitle.textContent = `Inserisci nuova commessa`
+  id_form.value = `inserisci_commessa`
+  nome.value = ``
+  cliente.value = `1`
+  data.value = ``
+  ore.value = ``
+  euro.value = ``
+  project_manager.value = `1`
+  note.value = ``
+  tipo_supporti.checked = false
+  tipo_piping.checked = false
+  tipo_stressAnalysis.checked = false
+  tipo_altro.checked = false
+
+  } else {
+  modalTitle.textContent = `Modifica commessa ${JSON.parse(tmp_dati)["numero"]}`
+  id_form.value = `modifica_commessa`
+  nome.value = `${JSON.parse(tmp_dati)["nome"]}`
+  cliente.value = `${JSON.parse(tmp_dati)["cliente"]["id"]}`
+  data.value = `${JSON.parse(tmp_dati)["durata"]["inizio"]}`
+  ore.value = `${JSON.parse(tmp_dati)["specifiche"]["budget_ore"]}`
+  euro.value = `${JSON.parse(tmp_dati)["specifiche"]["budget_euro"]}`
+  project_manager.value = `${JSON.parse(tmp_dati)["specifiche"]["project_manager"]["id"]}`
+  note.value = `${JSON.parse(tmp_dati)["note"]}`
+  const tipologia = JSON.parse(tmp_dati)["specifiche"]["tipologia"]
+  tipo_supporti.checked = false
+  tipo_piping.checked = false
+  tipo_stressAnalysis.checked = false
+  tipo_altro.checked = false
+  for (let i = 0; i < tipologia.length; i++) {
+    console.log(tipologia[i]["id"])
+    if (tipologia[i]["id"] == 1) {
+      tipo_supporti.checked = true
+    }
+    if (tipologia[i]["id"] == 2) {
+      tipo_piping.checked = true
+    }
+    if (tipologia[i]["id"] == 3) {
+      tipo_stressAnalysis.checked = true
+    }
+    if (tipologia[i]["id"] == 0) {
+      tipo_altro.checked = true
+    }
+  }
+  }
+})
+
+const eliminacommesseModal = document.getElementById('eliminacommesseModal')
+eliminacommesseModal.addEventListener('show.bs.modal', event => {
+  // Button that triggered the modal
+  const button = event.relatedTarget
+  // Extract info from data-bs-* attributes
+  const id_commessa = button.getAttribute('data-bs-id_commessa')
+  // If necessary, you could initiate an AJAX request here
+  // and then do the updating in a callback.
+  //
+  // Update the modal's content.
+  const modalTitle = eliminacommesseModal.querySelector('.modal-title')
+  const in_id_commessa = eliminacommesseModal.querySelector('#id_commessa')
+  in_id_commessa.value = `${id_commessa}`
+  // modalTitle.textContent = `Elimina`
+})
+
+const chiudi_commesseModal = document.getElementById('chiudi_commesseModal')
+chiudi_commesseModal.addEventListener('show.bs.modal', event => {
+  // Button that triggered the modal
+  const button = event.relatedTarget
+  // Extract info from data-bs-* attributes
+  const id_commessa = button.getAttribute('data-bs-id_commessa')
+  // If necessary, you could initiate an AJAX request here
+  // and then do the updating in a callback.
+  //
+  // Update the modal's content.
+  const in_id_commessa = chiudi_commesseModal.querySelector('#id_commessa')
+  in_id_commessa.value = `${id_commessa}`
+})
+
+const toastTrigger = document.getElementById('liveToastBtn')
+const toastLiveExample = document.getElementById('liveToast')
+if (toastTrigger) {
+  toastTrigger.addEventListener('click', () => {
+    const toast = new bootstrap.Toast(toastLiveExample)
+
+    toast.show()
+  })
+}
+</script>
+
+{% endblock %}

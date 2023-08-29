@@ -1,54 +1,5 @@
 {% extends "base.html" %}
 
-{% block menu %}
-<ul class="nav flex-column">
-  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-    <span><strong>Commesse</strong></span>
-  </h6>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("dashboard") }}">
-      Attive
-    </a>
-  </li>
-  {% if gestione %}
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("storico") }}">
-      Storico
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link active" aria-current="page" href="{{ url_for("nuova_commessa") }}">
-      Nuova Commessa
-    </a>
-  </li>
-  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-    <span><strong>Amministrazione</strong></span>
-  </h6>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("collaboratori") }}">
-      Gestione Database
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("report") }}">
-      Report
-    </a>
-  </li>
-  {% endif %}
-  <hr>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("account") }}">
-      Account
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("logout") }}">
-      Logout
-    </a>
-  </li>
-</ul>
-{% endblock %}
-
 {% block corpo %}
 <h2 class="text-center"><strong>NUOVA COMMESSA</strong></h2>
 
@@ -63,11 +14,9 @@
   {% endif %}
 {% endwith %}
 
-
-
 <form method="post">
   <input type="hidden" id="id_form" name="id_form" value="inserisci_commessa">
-  <input type="hidden" id="id_commessa" name="id_commessa" value="">
+  <input type="hidden" id="id_offerta" name="id_offerta" value="">
   <div class="row">
   <div class="col">
   <div class="mb-3">
@@ -75,16 +24,21 @@
     <input type="text" class="form-control" id="nome" name="nome">
   </div>
   <div class="mb-3">
-    <label for="cliente" class="col-form-label"><strong>Cliente</strong></label>
-    <select class="form-select" aria-label="Cliente" id="cliente" name="cliente">
-      <option value="0">Crea nuovo cliente</option>
-      {% for i in clienti %}
-      <option value="{{ i[0] }}">{{ i[1] }}</option>
-      {% endfor %}
-    </select>
-    <div id="clienteHelp" class="form-text">Se commessa interna selezionare "MCP Consulting"</div>
-    <label for="new_cliente" class="col-form-label"><strong>Nuovo Cliente</strong></label>
-    <input type="text" class="form-control" id="new_cliente" name="new_cliente">
+    <div class="row">
+      <div class="col">
+        <label for="cliente" class="col-form-label"><strong>Cliente</strong></label>
+        <select class="form-select" aria-label="Cliente" id="cliente" name="cliente">
+          <option value="0">Crea nuovo cliente</option>
+          {% for i in clienti %}
+          <option value="{{ i[0] }}">{{ i[1] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col">
+        <label for="new_cliente" class="col-form-label"><strong>Nuovo Cliente</strong></label>
+        <input type="text" class="form-control" id="new_cliente" name="new_cliente">
+      </div>
+    </div>
   </div>
   <div class="mb-3">
     <label for="project_manager" class="col-form-label"><strong>Project Manager</strong></label>
@@ -98,18 +52,12 @@
   </div>
   <div class="mb-3">
     <label class="col-form-label"><strong>Tipologia</strong></label>
+    {% for i in tipi_lavorazione %}
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" value="1" id="tipo_supporti" name="tipo_supporti">
-      <label class="form-check-label" for="tipo_supporti">Supporti</label>
+      <input class="form-check-input" type="checkbox" value="{{ i[0] }}" id="{{ i[1] }}" name="{{ i[1] }}">
+      <label class="form-check-label" for="{{ i[1] }}">{{ i[2] }}</label>
     </div>
-    <div class="form-check">
-      <input class="form-check-input" type="checkbox" value="2" id="tipo_piping" name="tipo_piping">
-      <label class="form-check-label" for="tipo_piping">Piping</label>
-    </div>
-    <div class="form-check">
-      <input class="form-check-input" type="checkbox" value="3" id="tipo_stressAnalysis" name="tipo_stressAnalysis">
-      <label class="form-check-label" for="tipo_stressAnalysis">Stress Analysis</label>
-    </div>
+    {% endfor %}
     <div class="form-check">
       <input class="form-check-input" type="checkbox" value="0" id="tipo_altro" name="tipo_altro">
       <label class="form-check-label" for="tipo_altro">Altro</label>
@@ -133,7 +81,7 @@
   </div>
   <div class="mb-3">
     <label for="note" class="col-form-label"><strong>Note</strong></label>
-    <textarea class="form-control" id="note" name="note" rows="3"></textarea>
+    <textarea class="form-control" id="note" name="note" rows="2"></textarea>
     <div id="noteHelp" class="form-text">Campo libero</div>
   </div>
   </div>

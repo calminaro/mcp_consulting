@@ -1,54 +1,5 @@
 {% extends "base.html" %}
 
-{% block menu %}
-<ul class="nav flex-column">
-  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-    <span><strong>Commesse</strong></span>
-  </h6>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("dashboard") }}">
-      Attive
-    </a>
-  </li>
-  {% if gestione %}
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("storico") }}">
-      Storico
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("nuova_commessa") }}">
-      Nuova Commessa
-    </a>
-  </li>
-  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-    <span><strong>Amministrazione</strong></span>
-  </h6>
-  <li class="nav-item">
-    <a class="nav-link active" aria-current="page" href="{{ url_for("collaboratori") }}">
-      Gestione Database
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("report") }}">
-      Report
-    </a>
-  </li>
-  {% endif %}
-  <hr>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("account") }}">
-      Account
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("logout") }}">
-      Logout
-    </a>
-  </li>
-</ul>
-{% endblock %}
-
 {% block corpo %}
 
 <h2 class="text-center"><strong>GESTIONE DATABASE</strong></h2>
@@ -66,7 +17,7 @@
 
 <ul class="nav nav-tabs">
   <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("collaboratori") }}">Collaboratori</a>
+    <a class="nav-link" href="{{ url_for("collaboratori") }}">Collaboratori e Manager</a>
   </li>
   <li class="nav-item">
     <a class="nav-link" href="{{ url_for("clienti") }}">Clienti</a>
@@ -77,9 +28,7 @@
 </ul>
 
 <!-- Button trigger modal -->
-<button type="button" class="btn btn-warning btn-sm my-2 disabled">Nuova Tipologia</button>
-
-<p>Al momento non è possibile aggiungere nuove tipologie o modificare le esistenti</p>
+<button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#tipologieModal">Nuova Tipologia</button>
 
 <div class="table-responsive">
 <table class="table">
@@ -91,39 +40,42 @@
     </tr>
   </thead>
   <tbody>
+    {% for i in tipi_lavorazione %}
     <tr>
-      <td>1</td>
-      <td>Piping</td>
+      <td>{{ i[0] }}</td>
+      <td>{{ i[2] }}</td>
       <td>
         <div class="btn-group" role="group" aria-label="Azioni">
-        <button type="button" class="btn btn-warning btn-sm disabled">Modifica</button>
-        <button type="button" class="btn btn-danger btn-sm disabled">Elimina</button>
+          <button type="button" class="btn btn-warning btn-sm disabled">Modifica</button>
+          <button type="button" class="btn btn-danger btn-sm disabled">Elimina</button>
         </div>
       </td>
     </tr>
-    <tr>
-      <td>2</td>
-      <td>Supporti</td>
-      <td>
-        <div class="btn-group" role="group" aria-label="Azioni">
-        <button type="button" class="btn btn-warning btn-sm disabled">Modifica</button>
-        <button type="button" class="btn btn-danger btn-sm disabled">Elimina</button>
-        </div>
-      </td>
-    </tr>
-    <tr>
-      <td>3</td>
-      <td>Stress Analysis</td>
-      <td>
-        <div class="btn-group" role="group" aria-label="Azioni">
-        <button type="button" class="btn btn-warning btn-sm disabled">Modifica</button>
-        <button type="button" class="btn btn-danger btn-sm disabled">Elimina</button>
-        </div>
-      </td>
-    </tr>
+    {% endfor %}
   </tbody>
 </table>
 </div>
 
+<!--Modal per le tipologie-->
+<div class="modal fade" id="tipologieModal" tabindex="-1" aria-labelledby="tipologieModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="tipologieModalLabel">Inserisci</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="inserisci_tipologia">
+          <div class="mb-3">
+            <label for="message-text" class="col-form-label">Nome</label>
+            <input type="text" class="form-control" id="nome" name="nome">
+          </div>
+          <button type="submit" class="btn btn-warning btn-sm">Inserisci</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock %}

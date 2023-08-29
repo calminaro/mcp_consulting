@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block corpo %}
+<h2 class="text-center"><strong>NUOVA OFFERTA</strong></h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="my-2 alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<form method="post">
+  <input type="hidden" id="id_form" name="id_form" value="inserisci_offerta">
+  <div class="row">
+  <div class="col">
+
+  <label for="nome" class="col-form-label"><strong>ID Offerta</strong></label>
+  <div class="input-group mb-3">
+    <span class="input-group-text">{{ pre_suff["prefisso"] }}-</span>
+    <input type="text" class="form-control" aria-label="nome" id="nome" name="nome">
+    <span class="input-group-text">{{ pre_suff["suffisso"] }}-{{ anno }}</span></span>
+  </div>
+  <div class="mb-3">
+    <div class="row">
+      <div class="col">
+        <label for="cliente" class="col-form-label"><strong>Cliente</strong></label>
+        <select class="form-select" aria-label="Cliente" id="cliente" name="cliente">
+          <option value="0">Crea nuovo cliente</option>
+          {% for i in clienti %}
+          <option value="{{ i[0] }}">{{ i[1] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col">
+        <label for="new_cliente" class="col-form-label"><strong>Nuovo Cliente</strong></label>
+        <input type="text" class="form-control" id="new_cliente" name="new_cliente">
+      </div>
+    </div>
+  </div>
+  <div class="mb-3">
+    <label for="n_ordine" class="col-form-label"><strong>Ordine di riferimento</strong></label>
+    <input type="text" class="form-control" id="n_ordine" name="n_ordine">
+  </div>
+  </div>
+  <div class="col">
+  <div class="mb-3">
+    <label for="data" class="col-form-label"><strong>Data creazione offerta</strong></label>
+    <input type="date" class="form-control" id="data" name="data">
+  </div>
+  <div class="mb-3">
+    <label for="note" class="col-form-label"><strong>Note</strong></label>
+    <textarea class="form-control" id="note" name="note" rows="2"></textarea>
+    <div id="noteHelp" class="form-text">Campo libero</div>
+  </div>
+  </div>
+  </div>
+  <button type="submit" class="btn btn-warning btn-sm">Inserisci</button>
+</form>
+
+
+{% endblock %}
