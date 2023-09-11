@@ -284,7 +284,7 @@ function f_guadagno() {
     {% if gestione %}
     <div class="btn-group" role="group" aria-label="Basic example">
       <button type="button" class="btn btn-success btn-sm my-2" data-bs-toggle="modal" data-bs-target="#chiudi_commesseModal" data-bs-id_commessa="{{ i["id"] }}">Chiudi</button>
-      <button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#commesseModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ i | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Modifica</button>
+      <button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#commesseModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-tmp_dati="{{ i | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}" data-bs-tipi_lavorazione="{{ tipi_lavorazione | replace("'", "\"") }}">Modifica</button>
       <button type="button" class="btn btn-danger btn-sm my-2" data-bs-toggle="modal" data-bs-target="#eliminacommesseModal" data-bs-id_commessa="{{ i["id"] }}">Elimina</button>
     </div>
     {% endif %}
@@ -298,12 +298,16 @@ function f_guadagno() {
       {% endfor %}
       </p>
 
-      <p><strong>Offerta: </strong><a href="{{ url_for("storico") }}">OE-XXXmcp-2023-revisioneY</a></p>
+      <p><strong>Offerta: </strong>
+      {% if i["offerta"]["id"] != 0 %}
+      <a href="{{ url_for("dettaglio_offerta", id_offerta=i["offerta"]["id"]) }}">{{ i["offerta"]["numero"] }}</a>
+      {% endif %}
+      </p>
 
       <p><strong>Note: </strong>{{ i["note"] }}</p>
       </div>
       <div class="col">
-      Grafico Qualità
+
       </div>
     </div>
 
@@ -350,14 +354,6 @@ function f_guadagno() {
       </tbody>
     </table>
     </div>
-
-    <p><strong>File</strong></p>
-    <ul class="list-group">
-      <li class="list-group-item"><a href="{{ url_for("storico") }}">Note cliente.pdf</a></li>
-      <li class="list-group-item"><a href="{{ url_for("storico") }}">File_sticazzi.docx</a></li>
-    </ul>
-
-    <button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_commessa="{{ i["id"] }}" data-bs-numero_commessa="{{ i["numero"] }}" data-bs-tmp_dati="">Aggiungi File</button>
 
     <hr>
 
@@ -433,7 +429,6 @@ function f_guadagno() {
               <option value="{{ i[0] }}">{{ i[1] }}</option>
               {% endfor %}
             </select>
-            <div id="clienteHelp" class="form-text">Se commessa interna selezionare "MCP Consulting"</div>
           </div>
           <div class="mb-3">
             <label for="project_manager" class="col-form-label"><strong>Project Manager</strong></label>
@@ -447,18 +442,12 @@ function f_guadagno() {
           </div>
           <div class="mb-3">
             <label class="col-form-label"><strong>Tipologia</strong></label>
+            {% for i in tipi_lavorazione %}
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="1" id="tipo_supporti" name="tipo_supporti">
-              <label class="form-check-label" for="tipo_supporti">Supporti</label>
+              <input class="form-check-input" type="checkbox" value="{{ i[0] }}" id="{{ i[1] }}" name="{{ i[1] }}">
+              <label class="form-check-label" for="{{ i[1] }}">{{ i[2] }}</label>
             </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="2" id="tipo_piping" name="tipo_piping">
-              <label class="form-check-label" for="tipo_piping">Piping</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" value="3" id="tipo_stressAnalysis" name="tipo_stressAnalysis">
-              <label class="form-check-label" for="tipo_stressAnalysis">Stress Analysis</label>
-            </div>
+            {% endfor %}
             <div class="form-check">
               <input class="form-check-input" type="checkbox" value="0" id="tipo_altro" name="tipo_altro">
               <label class="form-check-label" for="tipo_altro">Altro</label>
@@ -674,6 +663,7 @@ commesseModal.addEventListener('show.bs.modal', event => {
   // Extract info from data-bs-* attributes
   const id_commessa = button.getAttribute('data-bs-id_commessa')
   const tmp_dati = button.getAttribute('data-bs-tmp_dati')
+  const tipi_lavorazione = JSON.parse('{{ tipi_lavorazione | tojson }}');
   // If necessary, you could initiate an AJAX request here
   // and then do the updating in a callback.
   //
@@ -703,9 +693,10 @@ commesseModal.addEventListener('show.bs.modal', event => {
   euro.value = ``
   project_manager.value = `1`
   note.value = ``
-  tipo_supporti.checked = false
-  tipo_piping.checked = false
-  tipo_stressAnalysis.checked = false
+  console.log(tipi_lavorazione);
+  for (let i = 0; i < tipi_lavorazione.length; i++) {
+    commesseModal.querySelector('#'+tipi_lavorazione[i][1]).checked = false
+  }
   tipo_altro.checked = false
 
   } else {
@@ -719,25 +710,22 @@ commesseModal.addEventListener('show.bs.modal', event => {
   project_manager.value = `${JSON.parse(tmp_dati)["specifiche"]["project_manager"]["id"]}`
   note.value = `${JSON.parse(tmp_dati)["note"]}`
   const tipologia = JSON.parse(tmp_dati)["specifiche"]["tipologia"]
-  tipo_supporti.checked = false
-  tipo_piping.checked = false
-  tipo_stressAnalysis.checked = false
+
+  for (let i = 0; i < tipi_lavorazione.length; i++) {
+    commesseModal.querySelector('#'+tipi_lavorazione[i][1]).checked = false
+  }
   tipo_altro.checked = false
-  for (let i = 0; i < tipologia.length; i++) {
-    console.log(tipologia[i]["id"])
-    if (tipologia[i]["id"] == 1) {
-      tipo_supporti.checked = true
-    }
-    if (tipologia[i]["id"] == 2) {
-      tipo_piping.checked = true
-    }
-    if (tipologia[i]["id"] == 3) {
-      tipo_stressAnalysis.checked = true
-    }
-    if (tipologia[i]["id"] == 0) {
-      tipo_altro.checked = true
+  for (let i = 0; i < tipi_lavorazione.length; i++) {
+    for (let j = 0; j < tipologia.length; j++) {
+      if (tipologia[j]["id"] == tipi_lavorazione[i][0]) {
+        commesseModal.querySelector('#'+tipi_lavorazione[i][1]).checked = true
+      }
+      if (tipologia[j]["id"] == 0) {
+        tipo_altro.checked = true
+      }
     }
   }
+
   }
 })
 

@@ -11,9 +11,9 @@ cur.execute("CREATE TABLE IF NOT EXISTS lavorazioni (id INTEGER PRIMARY KEY AUTO
 
 #Tabella Offerte e Addestramento con relative ore
 cur.execute("CREATE TABLE IF NOT EXISTS offerte (id INTEGER PRIMARY KEY AUTOINCREMENT, numero TEXT, ordine_rif TEXT, cliente INTEGER, versioni json, note TEXT)")
-cur.execute("CREATE TABLE IF NOT EXISTS addestramento (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, note TEXT)")
+cur.execute("CREATE TABLE IF NOT EXISTS interne (id INTEGER PRIMARY KEY AUTOINCREMENT, numero TEXT, nome TEXT, durata json, note TEXT)")
 
-cur.execute("CREATE TABLE IF NOT EXISTS ore_interne (id INTEGER PRIMARY KEY AUTOINCREMENT, collaboratore INTEGER, tipo json, durata json)")
+cur.execute("CREATE TABLE IF NOT EXISTS ore_interne (id INTEGER PRIMARY KEY AUTOINCREMENT, collaboratore INTEGER, id_interna INTEGER, durata json)")
 
 #Qualità
 cur.execute("CREATE TABLE IF NOT EXISTS fornitori (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, valutazioni json)")

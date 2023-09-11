@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, url_for, redirect, flash, Markup, abort, send_file
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from openpyxl import Workbook, load_workbook
 from string import ascii_lowercase
@@ -139,6 +140,13 @@ def get_nome(tipo, tmp_id):
             nome = user.anagrafica["nome"] + " " + user.anagrafica["cognome"]
         except:
             nome = ""
+    elif tipo == "file":
+        cur.execute("select nome from file where id = ?", [tmp_id])
+        tmp_file = cur.fetchall()
+        try:
+            nome = tmp_file[0][0]
+        except:
+            nome = ""
     mcpDB.commit()
     mcpDB.close()
     return nome
@@ -170,7 +178,8 @@ def get_costo(tmp_id, durata):
         costo += ct["trasferta"]
         tmp_durata = 8.0
     user = User.query.filter_by(id=tmp_id).first()
-    user_costo = float(user.collaboratore["costo"])
+    #user_costo = float(user.collaboratore["costo"])
+    user_costo = float(15)
     costo = costo + (tmp_durata*user_costo)
     return costo
 
@@ -209,7 +218,11 @@ def insert_edit_commessa(dati):
             "fine": False
             }
         numero = str(genera_ext())
-        cur.execute("INSERT INTO commesse (numero, nome, cliente, specifiche, durata, note, offerte, file) VALUES (?,?,?,?,?,?,?,?)", [numero, dati["nome"], int(dati["cliente"]), json.dumps(specifiche), json.dumps(durata), dati["note"], json.dumps({}), json.dumps({})])
+        if dati["id_offerta"] == "":
+            tmp_id_offerta = 0
+        else:
+            tmp_id_offerta = int(dati["id_offerta"])
+        cur.execute("INSERT INTO commesse (numero, nome, cliente, specifiche, durata, note, offerta, file) VALUES (?,?,?,?,?,?,?,?)", [numero, dati["nome"], int(dati["cliente"]), json.dumps(specifiche), json.dumps(durata), dati["note"], tmp_id_offerta, json.dumps({})])
     elif dati["form"] == "modifica_commessa":
         specifiche = {
             "budget_ore": int(dati["ore"]),
@@ -289,6 +302,14 @@ def dati_mcp(tipo):
                     "project_manager": {"id": json.loads(commessa[4])["project_manager"],"nome": get_nome("collaboratore", json.loads(commessa[4])["project_manager"])},
                     "tipologia": get_tipo_commessa(json.loads(commessa[4])["tipologia"])
                     }
+            if commessa[7] != 0:
+                cur.execute("select numero, versioni from offerte where id = ?", [commessa[7]])
+                offerte = cur.fetchall()[0]
+                tmp_id_offerta = int(commessa[7])
+                tmp_numero = get_numero_offerta(offerte[0], json.loads(offerte[1]))
+            else:
+                tmp_id_offerta = 0
+                tmp_numero = 0
             tmp_commessa = {
                 "id": commessa[0],
                 "numero": get_numero_commessa(commessa[1]),
@@ -296,7 +317,9 @@ def dati_mcp(tipo):
                 "cliente": {"id": commessa[3],"nome": get_nome("cliente", commessa[3])},
                 "specifiche": tmp_specifiche,
                 "durata": json.loads(commessa[5]),
-                "note": commessa[6]
+                "note": commessa[6],
+                "offerta": {"id": tmp_id_offerta,"numero": tmp_numero},
+                "file": commessa[8]
                 }
             dati.append(tmp_commessa)
 
@@ -330,6 +353,14 @@ def dati_mcp(tipo):
                     "project_manager": {"id": json.loads(commessa[4])["project_manager"],"nome": get_nome("collaboratore", json.loads(commessa[4])["project_manager"])},
                     "tipologia": get_tipo_commessa(json.loads(commessa[4])["tipologia"])
                     }
+            if commessa[7] != 0:
+                cur.execute("select numero, versioni from offerte where id = ?", [commessa[7]])
+                offerte = cur.fetchall()[0]
+                tmp_id_offerta = int(commessa[7])
+                tmp_numero = get_numero_offerta(offerte[0], json.loads(offerte[1]))
+            else:
+                tmp_id_offerta = 0
+                tmp_numero = 0
             tmp_commessa = {
                 "id": commessa[0],
                 "numero": get_numero_commessa(commessa[1]),
@@ -338,20 +369,26 @@ def dati_mcp(tipo):
                 "specifiche": tmp_specifiche,
                 "durata": json.loads(commessa[5]),
                 "note": commessa[6],
+                "offerta": {"id": tmp_id_offerta,"numero": tmp_numero},
+                "file": commessa[8],
                 "lavorazioni": tmp_lavorazioni
                 }
             dati.append(tmp_commessa)
+
     elif tipo == "offerte":
         cur.execute("select * from offerte")
         offerte = cur.fetchall()
         dati = []
         for offerta in offerte:
+            tmp_versioni = []
+            for i in json.loads(offerta[4])["versioni"]:
+                tmp_versioni.append({"rev": i["rev"], "file": {"id": i["file"],"nome": get_nome("file", i["file"])}})
             tmp_offerta = {
                 "id": offerta[0],
                 "numero": get_numero_offerta(offerta[1], json.loads(offerta[4])),
                 "ordine_rif": offerta[2],
                 "cliente": {"id": offerta[3],"nome": get_nome("cliente", offerta[3])},
-                "versioni": json.loads(offerta[4]),
+                "versioni": {"data": json.loads(offerta[4])["data"], "chiusa": json.loads(offerta[4])["chiusa"], "versioni": tmp_versioni},
                 "note": offerta[5]
                 }
             dati.append(tmp_offerta)
@@ -362,7 +399,7 @@ def dati_mcp(tipo):
 @app.route("/")
 def homepage():
     if current_user.is_authenticated:
-        return render_template("dashboard.html", dati=dati_mcp("commesse_complete"), clienti=get_clienti(), utenti=User.query.all(), tipi_lavorazione=get_tipo_lavorazione())
+        return redirect(url_for("commesse"))
     return render_template("index.html")
 
 @app.route("/commesse", defaults={ "pagina": "riepilogo" }, methods=("GET", "POST"))
@@ -379,6 +416,7 @@ def commesse(pagina):
             try:
                 anno, mese, giorno = request.form["data"].split('-')
                 tmp = datetime.date(int(anno), int(mese), int(giorno))
+                print(datetime.today() - tmp)
                 tmp_ore = float(request.form["ore"])
                 ore, minuti = str(tmp_ore).split('.')
                 tmp = datetime.time(hour=int(ore), minute=(int(60*(int(minuti)/10))))
@@ -413,18 +451,11 @@ def commesse(pagina):
             pagina = tmp_dati["id_commessa"]
         elif request.form["id_form"] == "modifica_commessa":
             tipi = []
-            try:
-                tipi.append(int(request.form["tipo_supporti"]))
-            except:
-                pass
-            try:
-                tipi.append(int(request.form["tipo_piping"]))
-            except:
-                pass
-            try:
-                tipi.append(int(request.form["tipo_stressAnalysis"]))
-            except:
-                pass
+            for i in get_tipo_lavorazione():
+                try:
+                    tipi.append(int(request.form[i[1]]))
+                except:
+                    pass
             try:
                 tipi.append(int(request.form["tipo_altro"]))
             except:
@@ -462,12 +493,6 @@ def commesse(pagina):
             commesse = cur.fetchall()
             mcpDB.commit()
             mcpDB.close()
-            if commesse[0][2] == "interna" and request.form["cliente"] != "1":
-                dati_validi = False
-                flash("ATTENZIONE: Questa commessa è interna, non può avere un cliente diverso da MCP Consulting", "warning")
-            elif commesse[0][2] == "esterna" and request.form["cliente"] == "1":
-                dati_validi = False
-                flash("ATTENZIONE: Questa commessa è esterna, non può avere MCP Consulting come cliente", "warning")
             if dati_validi:
                 insert_edit_commessa(tmp_dati)
                 flash("Commessa modificata con successo!", "success")
@@ -490,137 +515,45 @@ def commesse(pagina):
     return render_template("commesse.html", pagina=pagina, gestione=gestisce(), dati=dati_mcp("commesse_complete"), clienti=get_clienti(), utenti=User.query.all(), tipi_lavorazione=get_tipo_lavorazione(), menu_page="commesse")
 
 @app.route("/offerte", defaults={ "pagina": "riepilogo" }, methods=("GET", "POST"))
-@app.route("/offerte/<string:pagina>", methods=("GET", "POST"))
 @login_required
 def offerte(pagina):
     if request.method == "POST":
-        if request.form["id_form"] == "inserisci_lavorazione" or request.form["id_form"] == "modifica_lavorazione":
+        if request.form["id_form"] == "inserisci_file":
             try:
-                request.form["trasferta"]
-                tmp_trasferta = True
+                mcpDB = sqlite3.connect(mcpDB_path)
+                cur = mcpDB.cursor()
+                file = request.files["file"]
+                if file.filename == "":
+                    flash("Nessun file selezionato!", "warning")
+                    return render_template("offerte.html", pagina=pagina, gestione=gestisce(), dati=dati_mcp("offerte"), clienti=get_clienti(), utenti=User.query.all(), menu_page="offerte")
+
+                cur.execute("INSERT INTO file (nome, dati) VALUES (?,?)", [secure_filename(file.filename), file.read()])
+                cur.execute("select * from file where nome = ?", [secure_filename(file.filename)])
+                id_file = cur.fetchall()[0][0]
+                cur.execute("select versioni from offerte where id = ?", [int(request.form["id_offerta"])])
+                offerte = cur.fetchall()
+                tmp_rev = 0
+                tmp_versioni = json.loads(offerte[0][0])
+                if len(tmp_versioni["versioni"]) > 0:
+                    for i in tmp_versioni["versioni"]:
+                        if i["rev"] > tmp_rev:
+                            tmp_rev = i["rev"]
+                    tmp_rev += 1
+                tmp_versioni["versioni"].append({"rev": tmp_rev,"file": id_file})
+
+                cur.execute("UPDATE offerte SET versioni = ? WHERE id = ?", [json.dumps(tmp_versioni), int(request.form["id_offerta"])])
+
+                mcpDB.commit()
+                mcpDB.close()
             except:
-                tmp_trasferta = False
-            try:
-                anno, mese, giorno = request.form["data"].split('-')
-                tmp = datetime.date(int(anno), int(mese), int(giorno))
-                tmp_ore = float(request.form["ore"])
-                ore, minuti = str(tmp_ore).split('.')
-                tmp = datetime.time(hour=int(ore), minute=(int(60*(int(minuti)/10))))
-                dati_validi = True
-            except:
-                dati_validi = False
-            tmp_dati = {
-                "form": request.form["id_form"],
-                "id_commessa": request.form["id_commessa"],
-                "id_lavorazione": request.form["id_lavorazione"],
-                "tipo": request.form["tipo"],
-                "durata": {
-                    "data": request.form["data"],
-                    "ore": request.form["ore"],
-                    "trasferta": tmp_trasferta
-                    }
-                }
-            if dati_validi:
-                insert_edit_lavorazione(tmp_dati)
-                flash("Inserimento avvenuto con successo!", "success")
-            else:
-                flash("Dati errati.", "warning")
-            pagina = tmp_dati["id_commessa"]
-        elif request.form["id_form"] == "elimina_lavorazione":
-            tmp_dati = {
-                "form": request.form["id_form"],
-                "id_commessa": request.form["id_commessa"],
-                "id_lavorazione": request.form["id_lavorazione"]
-                }
-            insert_edit_lavorazione(tmp_dati)
-            flash("Eliminato con successo!", "success")
-            pagina = tmp_dati["id_commessa"]
-        elif request.form["id_form"] == "modifica_commessa":
-            tipi = []
-            try:
-                tipi.append(int(request.form["tipo_supporti"]))
-            except:
-                pass
-            try:
-                tipi.append(int(request.form["tipo_piping"]))
-            except:
-                pass
-            try:
-                tipi.append(int(request.form["tipo_stressAnalysis"]))
-            except:
-                pass
-            try:
-                tipi.append(int(request.form["tipo_altro"]))
-            except:
-                pass
-            try:
-                anno, mese, giorno = request.form["data"].split('-')
-                tmp = datetime.date(int(anno), int(mese), int(giorno))
-                dati_validi = True
-            except:
-                dati_validi = False
-                flash("Dati errati: Manca la data di apertura commessa!", "warning")
-            try:
-                tmp_ore = int(request.form["ore"])
-            except:
-                tmp_ore = 0
-            try:
-                tmp_euro = int(request.form["euro"])
-            except:
-                tmp_euro = 0
-            tmp_dati = {
-                "form": request.form["id_form"],
-                "id_commessa": request.form["id_commessa"],
-                "nome": request.form["nome"],
-                "cliente": request.form["cliente"],
-                "project_manager": request.form["project_manager"],
-                "tipologia": tipi,
-                "data": request.form["data"],
-                "ore": tmp_ore,
-                "euro": tmp_euro,
-                "note": request.form["note"]
-                }
-            mcpDB = sqlite3.connect(mcpDB_path)
-            cur = mcpDB.cursor()
-            cur.execute("select * from commesse where id = ?", [int(request.form["id_commessa"])])
-            commesse = cur.fetchall()
-            mcpDB.commit()
-            mcpDB.close()
-            if commesse[0][2] == "interna" and request.form["cliente"] != "1":
-                dati_validi = False
-                flash("ATTENZIONE: Questa commessa è interna, non può avere un cliente diverso da MCP Consulting", "warning")
-            elif commesse[0][2] == "esterna" and request.form["cliente"] == "1":
-                dati_validi = False
-                flash("ATTENZIONE: Questa commessa è esterna, non può avere MCP Consulting come cliente", "warning")
-            if dati_validi:
-                insert_edit_commessa(tmp_dati)
-                flash("Commessa modificata con successo!", "success")
-            pagina = tmp_dati["id_commessa"]
-        elif request.form["id_form"] == "elimina_commessa":
-            tmp_dati = {
-                "form": request.form["id_form"],
-                "id_commessa": request.form["id_commessa"]
-                }
-            insert_edit_commessa(tmp_dati)
-            flash("Commessa eliminata con successo!", "success")
-        elif request.form["id_form"] == "chiudi_commessa":
-            tmp_dati = {
-                "form": request.form["id_form"],
-                "id_commessa": request.form["id_commessa"],
-                "data": request.form["data"]
-                }
-            insert_edit_commessa(tmp_dati)
-            flash("Commessa chiusa con successo!", "success")
+                flash("Errore nel caricamento del file!", "warning")
+
     return render_template("offerte.html", pagina=pagina, gestione=gestisce(), dati=dati_mcp("offerte"), clienti=get_clienti(), utenti=User.query.all(), menu_page="offerte")
 
 @app.route("/crea_commessa", defaults={ "offerta": False }, methods=("GET", "POST"))
 @app.route("/crea_commessa/<string:offerta>", methods=("GET", "POST"))
 @login_required
 def crea_commessa(offerta):
-    if not offerta:
-        print("ciao")
-    else:
-        print("pippo")
     if request.method == "POST":
         if request.form["id_form"] == "inserisci_commessa":
             tipi = []
@@ -669,6 +602,7 @@ def crea_commessa(offerta):
             tmp_dati = {
                 "form": request.form["id_form"],
                 "id_commessa": "",
+                "id_offerta": request.form["id_offerta"],
                 "nome": request.form["nome"],
                 "cliente": tmp_id_cliente,
                 "project_manager": request.form["project_manager"],
@@ -683,7 +617,27 @@ def crea_commessa(offerta):
                 flash("Inserito con successo!", "success")
             #return redirect(url_for("commesse", pagina=""))
         return redirect(url_for("commesse"))
-    return render_template("crea_commessa.html", gestione=gestisce(), clienti=get_clienti(), utenti=User.query.all(), tipi_lavorazione=get_tipo_lavorazione(), menu_page="")
+    if offerta:
+        mcpDB = sqlite3.connect(mcpDB_path)
+        cur = mcpDB.cursor()
+        cur.execute("select * from offerte where id = ?", [offerta])
+        offerte = cur.fetchall()
+        for offerta in offerte:
+            tmp_versioni = []
+            for i in json.loads(offerta[4])["versioni"]:
+                tmp_versioni.append({"rev": i["rev"], "file": {"id": i["file"],"nome": get_nome("file", i["file"])}})
+            tmp_offerta = {
+                "id": offerta[0],
+                "numero": get_numero_offerta(offerta[1], json.loads(offerta[4])),
+                "ordine_rif": offerta[2],
+                "cliente": {"id": offerta[3],"nome": get_nome("cliente", offerta[3])},
+                "versioni": {"data": json.loads(offerta[4])["data"], "chiusa": json.loads(offerta[4])["chiusa"], "versioni": tmp_versioni},
+                "note": offerta[5]
+                }
+        mcpDB.commit()
+        mcpDB.close()
+        return render_template("crea_commessa_da_offerta.html", gestione=gestisce(), clienti=get_clienti(), utenti=User.query.all(), tipi_lavorazione=get_tipo_lavorazione(), offerta=tmp_offerta, menu_page="crea_commessa")
+    return render_template("crea_commessa.html", gestione=gestisce(), clienti=get_clienti(), utenti=User.query.all(), tipi_lavorazione=get_tipo_lavorazione(), menu_page="crea_commessa")
 
 
 @app.route("/crea_offerta", methods=("GET", "POST"))
@@ -732,7 +686,7 @@ def crea_offerta():
                 flash("Inserito con successo!", "success")
             #return redirect(url_for("commesse", pagina=""))
         return redirect(url_for("commesse"))
-    return render_template("crea_offerta.html", anno=datetime.datetime.now().year, gestione=gestisce(), clienti=get_clienti(), utenti=User.query.all(), pre_suff=ct["offerte"], menu_page="")
+    return render_template("crea_offerta.html", anno=datetime.datetime.now().year, gestione=gestisce(), clienti=get_clienti(), utenti=User.query.all(), pre_suff=ct["offerte"], menu_page="crea_offerta")
 
 
 @app.route("/storico", defaults={ "anno": False })
@@ -822,25 +776,47 @@ def dettaglio_storico(id_commessa):
         tmp_lavorazioni.append(tmp_lavorazione)
     tmp_lavorazioni.sort(key = lambda x: datetime.datetime.strptime(x["durata"]["data"], '%Y-%m-%d'))
     tmp_specifiche = {
-            "budget_ore": float(json.loads(commesse[0][5])["budget_ore"]),
-            "budget_euro": float(json.loads(commesse[0][5])["budget_euro"]),
+            "budget_ore": float(json.loads(commesse[0][4])["budget_ore"]),
+            "budget_euro": float(json.loads(commesse[0][4])["budget_euro"]),
             "ore_lavorate": ore_lavorate,
             "euro_spesi": euro_spesi,
-            "project_manager": {"id": json.loads(commesse[0][5])["project_manager"],"nome": get_nome("collaboratore", json.loads(commesse[0][5])["project_manager"])},
-            "tipologia": get_tipo_commessa(json.loads(commesse[0][5])["tipologia"])
+            "project_manager": {"id": json.loads(commesse[0][4])["project_manager"],"nome": get_nome("collaboratore", json.loads(commesse[0][4])["project_manager"])},
+            "tipologia": get_tipo_commessa(json.loads(commesse[0][4])["tipologia"])
             }
     tmp_commessa = {
         "id": commesse[0][0],
         "numero": get_numero_commessa(commesse[0][1]),
-        "tipo": commesse[0][2],
-        "nome": commesse[0][3],
-        "cliente": {"id": commesse[0][4],"nome": get_nome("cliente", commesse[0][4])},
+        "nome": commesse[0][2],
+        "cliente": {"id": commesse[0][3],"nome": get_nome("cliente", commesse[0][3])},
         "specifiche": tmp_specifiche,
-        "durata": json.loads(commesse[0][6]),
-        "note": commesse[0][7],
+        "durata": json.loads(commesse[0][5]),
+        "note": commesse[0][6],
         "lavorazioni": tmp_lavorazioni
         }
     return render_template("dettaglio_storico.html", commessa=tmp_commessa, gestione=gestisce(), clienti=get_clienti(), utenti=User.query.all(), tipi_lavorazione=get_tipo_lavorazione(), menu_page="storico")
+
+@app.route("/dettaglio_offerta/<string:id_offerta>")
+@login_required
+def dettaglio_offerta(id_offerta):
+    mcpDB = sqlite3.connect(mcpDB_path)
+    cur = mcpDB.cursor()
+    cur.execute("select * from offerte where id = ?", [id_offerta])
+    offerte = cur.fetchall()
+    for offerta in offerte:
+        tmp_versioni = []
+        for i in json.loads(offerta[4])["versioni"]:
+            tmp_versioni.append({"rev": i["rev"], "file": {"id": i["file"],"nome": get_nome("file", i["file"])}})
+        tmp_offerta = {
+            "id": offerta[0],
+            "numero": get_numero_offerta(offerta[1], json.loads(offerta[4])),
+            "ordine_rif": offerta[2],
+            "cliente": {"id": offerta[3],"nome": get_nome("cliente", offerta[3])},
+            "versioni": {"data": json.loads(offerta[4])["data"], "chiusa": json.loads(offerta[4])["chiusa"], "versioni": tmp_versioni},
+            "note": offerta[5]
+            }
+    mcpDB.commit()
+    mcpDB.close()
+    return render_template("dettaglio_offerta.html", offerta=tmp_offerta, gestione=gestisce(), clienti=get_clienti(), utenti=User.query.all(), menu_page="offerte")
 
 @app.route("/report", methods=("GET", "POST"))
 @login_required
@@ -859,7 +835,9 @@ def report():
         mesi.append([i+1, 2023])
     anni.reverse()
     if request.method == "POST":
-        if request.form["id_form"] == "report_mensile" and int(request.form["mese"][0:4]) in anni and int(request.form["mese"][5:7]) in mesi:
+        if request.form["id_form"] == "report_settimanale":
+            print(datetime.datetime.strptime(request.form["settimana"] + '-1', "%Y-W%W-%w"))
+        elif request.form["id_form"] == "report_mensile" and int(request.form["mese"][0:4]) in anni and int(request.form["mese"][5:7]) in mesi:
             return redirect(url_for("report_periodo", tipo=request.form["tipo"], anno=request.form["mese"][0:4], mese=request.form["mese"][5:7]))
         elif request.form["id_form"] == "report_annuale" and int(request.form["anno"]) in anni:
             return redirect(url_for("report_periodo", tipo=request.form["tipo"], anno=request.form["anno"], mese="0"))
@@ -1165,6 +1143,28 @@ def collaboratori():
         utenti.append(utente)
     return render_template("collaboratori.html", gestione=gestisce(), utenti=User.query.all(), menu_page="database")
 
+@app.route("/download/<string:id_file>")
+@login_required
+def download(id_file):
+    mcpDB = sqlite3.connect(mcpDB_path)
+    cur = mcpDB.cursor()
+    cur.execute("select * from file where id = ?", [id_file])
+    file = cur.fetchall()
+    mcpDB.commit()
+    mcpDB.close()
+    return send_file(BytesIO(file[0][2]), download_name=file[0][1], as_attachment=True)
+
+@app.route("/provvisoria")
+@login_required
+def provvisoria():
+    if not gestisce():
+        return redirect(url_for("dashboard"))
+    return render_template("provvisoria.html", gestione=gestisce(), utenti=User.query.all())
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(e):
+    return render_template('500.html'), 500

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block corpo %}
+
+<nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for("offerte") }}">Offerte</a></li>
+    <li class="breadcrumb-item active" aria-current="page">
+      Dettaglio Offerta {{ offerta["numero"] }} - {{ offerta["cliente"]["nome"] }}
+    </li>
+  </ol>
+</nav>
+
+<h5 class="my-2"><strong>{{ offerta["numero"] }} - {{ offerta["cliente"]["nome"] }}</strong>
+
+{% if gestione %}
+<div class="btn-group" role="group" aria-label="Basic example">
+<button type="button" class="btn btn-success btn-sm my-2" data-bs-toggle="modal" data-bs-target="#creacommessaModal" data-bs-id_offerta="{{ offerta["id"] }}">Crea Commessa</button>
+  <button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#commesseModal" data-bs-id_offerta="{{ offerta["id"] }}" data-bs-tmp_dati="{{ offerta | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Modifica</button>
+  <button type="button" class="btn btn-danger btn-sm my-2" data-bs-toggle="modal" data-bs-target="#eliminacommesseModal" data-bs-id_commessa="{{ offerta["id"] }}">Elimina</button>
+</div>
+{% endif %}
+</h5>
+
+<div class="row">
+  <p>
+  <strong>Data creazione: </strong>{{ offerta["versioni"]["data"][8:10] }}/{{ offerta["versioni"]["data"][5:7] }}/{{ offerta["versioni"]["data"][0:4] }}
+  <br>
+  <strong>Ordine riferimento: </strong>{{ offerta["ordine_rif"] }}
+  <br>
+  <strong>Note: </strong>{{ offerta["note"] }}
+  </p>
+</div>
+
+{% if offerta["versioni"]["versioni"]|length == 0 %}
+<button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#upload_fileModal" data-bs-id_offerta="{{ offerta["id"] }}" data-bs-numero_offerta="{{ offerta["numero"] }}" data-bs-tmp_dati="">Aggiungi File Offerta</button>
+{% else %}
+<button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#upload_fileModal" data-bs-id_offerta="{{ offerta["id"] }}" data-bs-numero_offerta="{{ offerta["numero"] }}" data-bs-tmp_dati="">Aggiungi File Revisione Offerta</button>
+
+
+<div class="table-responsive">
+<table class="table" id="commesse_attive">
+  <thead>
+    <tr>
+      <th scope="col">Rev.</th>
+      <th scope="col">Nome del file</th>
+      <th scope="col"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for i in offerta["versioni"]["versioni"] %}
+    <tr>
+      {% if i["rev"] == 0 %}
+      <td></td>
+      {% else %}
+      <td>{{ i["rev"] }}</td>
+      {% endif %}
+      <td>{{ i["file"]["nome"] }}</td>
+      <td><a type="button" class="btn btn-warning btn-sm" href="{{ url_for("download", id_file=i["file"]["id"]) }}">Download</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% endif %}
+
+<hr>
+
+<button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_offerta="{{ offerta["id"] }}" data-bs-numero_offerta="{{ offerta["numero"] }}" data-bs-tmp_dati="">Inserisci ore</button>
+
+<!--Modal per creare commesse-->
+<div class="modal fade" id="creacommessaModal" tabindex="-1" aria-labelledby="creacommessaModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="creacommessaModalLabel">Crea Commessa</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Verrai reindirizzato alla pagina creazione commessa già precompilata.</p>
+        <a type="submit" class="btn btn-success btn-sm" href="{{ url_for("crea_commessa", offerta=offerta["id"]) }}">Conferma</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Modal per caricare file-->
+<div class="modal fade" id="upload_fileModal" tabindex="-1" aria-labelledby="upload_fileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="upload_fileModalLabel">Aggiungi File</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="POST" enctype="multipart/form-data">
+          <input type="hidden" id="id_form" name="id_form" value="inserisci_file">
+          <input type="hidden" id="id_offerta" name="id_offerta" value="">
+          <div class="mb-3">
+              <input type="file" class="form-control" id="file" name="file">
+            </div>
+        <button type="submit" class="btn btn-warning btn-sm">Carica</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+const upload_fileModal = document.getElementById('upload_fileModal')
+upload_fileModal.addEventListener('show.bs.modal', event => {
+  const button = event.relatedTarget
+  const id_offerta = button.getAttribute('data-bs-id_offerta')
+  const in_id_offerta = upload_fileModal.querySelector('#id_offerta')
+  in_id_offerta.value = `${id_offerta}`
+})
+</script>
+{% endblock %}

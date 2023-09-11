@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block corpo %}
+<h2 class="text-center"><strong>NUOVA COMMESSA</strong></h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="my-2 alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<form method="post">
+  <input type="hidden" id="id_form" name="id_form" value="inserisci_commessa">
+  <input type="hidden" id="id_offerta" name="id_offerta" value="{{ offerta["id"] }}">
+  <div class="row">
+  <div class="col">
+  <div class="mb-3">
+    <label for="nome" class="col-form-label"><strong>Nome Commessa</strong></label>
+    <input type="text" class="form-control" id="nome" name="nome">
+  </div>
+  <div class="mb-3">
+    <div class="row">
+      <div class="col">
+        <label for="cliente" class="col-form-label"><strong>Cliente</strong></label>
+        <select class="form-select" aria-label="Cliente" id="cliente" name="cliente">
+          <option value="0">Crea nuovo cliente</option>
+          {% for i in clienti %}
+          {% if i[0] == offerta["cliente"]["id"] %}
+          <option value="{{ i[0] }}" selected>{{ i[1] }}</option>
+          {% else %}
+          <option value="{{ i[0] }}">{{ i[1] }}</option>
+          {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col">
+        <label for="new_cliente" class="col-form-label"><strong>Nuovo Cliente</strong></label>
+        <input type="text" class="form-control" id="new_cliente" name="new_cliente">
+      </div>
+    </div>
+  </div>
+  <div class="mb-3">
+    <label for="project_manager" class="col-form-label"><strong>Project Manager</strong></label>
+    <select class="form-select" aria-label="Project Manager" id="project_manager" name="project_manager">
+      {% for i in utenti %}
+      {% if i.collaboratore["ruolo"] == "manager" %}
+      <option value="{{i.id}}">{{i.anagrafica["nome"]}} {{i.anagrafica["cognome"]}}</option>
+      {% endif %}
+      {% endfor %}
+    </select>
+  </div>
+  <div class="mb-3">
+    <label class="col-form-label"><strong>Tipologia</strong></label>
+    {% for i in tipi_lavorazione %}
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="{{ i[0] }}" id="{{ i[1] }}" name="{{ i[1] }}">
+      <label class="form-check-label" for="{{ i[1] }}">{{ i[2] }}</label>
+    </div>
+    {% endfor %}
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="0" id="tipo_altro" name="tipo_altro">
+      <label class="form-check-label" for="tipo_altro">Altro</label>
+    </div>
+  </div>
+  </div>
+  <div class="col">
+  <div class="mb-3">
+    <label for="data" class="col-form-label"><strong>Data apertura commessa</strong></label>
+    <input type="date" class="form-control" id="data" name="data">
+  </div>
+  <div class="mb-3">
+    <label for="ore" class="col-form-label"><strong>Ore disponibili</strong></label>
+    <input type="number" inputmode="numeric" class="form-control" id="ore" name="ore">
+    <div id="oreHelp" class="form-text">Inserisci il numero di ore, lascia vuoto se non c'è un limite</div>
+  </div>
+  <div class="mb-3">
+    <label for="euro" class="col-form-label"><strong>Budget disponibile</strong></label>
+    <input type="number" inputmode="numeric" class="form-control" id="euro" name="euro">
+    <div id="euroHelp" class="form-text">Inserisci il numero senza simbolo di €, lascia vuoto se non c'è budget</div>
+  </div>
+  <div class="mb-3">
+    <label for="note" class="col-form-label"><strong>Note</strong></label>
+    <textarea class="form-control" id="note" name="note" rows="2">{{ offerta["note"] }}</textarea>
+    <div id="noteHelp" class="form-text">Campo libero</div>
+  </div>
+  </div>
+  </div>
+  <button type="submit" class="btn btn-warning btn-sm">Inserisci</button>
+</form>
+
+
+{% endblock %}

@@ -1,77 +1,18 @@
 {% extends "base.html" %}
 
-{% block menu %}
-<ul class="nav flex-column">
-  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-    <span><strong>Commesse</strong></span>
-  </h6>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("dashboard") }}">
-      Attive
-    </a>
-  </li>
-  {% if gestione %}
-  <li class="nav-item">
-    <a class="nav-link active" aria-current="page"  href="{{ url_for("storico") }}">
-      Storico
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("nuova_commessa") }}">
-      Nuova Commessa
-    </a>
-  </li>
-  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-    <span><strong>Amministrazione</strong></span>
-  </h6>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("collaboratori") }}">
-      Gestione Database
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("report") }}">
-      Report
-    </a>
-  </li>
-  {% endif %}
-  <hr>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("account") }}">
-      Account
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("logout") }}">
-      Logout
-    </a>
-  </li>
-</ul>
-{% endblock %}
-
 {% block corpo %}
 
 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{{ url_for("storico") }}">Storico</a></li>
     <li class="breadcrumb-item active" aria-current="page">
-      Dettaglio Commessa
-      {% if commessa["tipo"] == "interna" %}
-      {{ commessa["numero"] }}
-      {% elif commessa["tipo"] == "esterna" %}
-      {{ commessa["durata"]["inizio"][2:4] }}{{ commessa["numero"] }}
-      {% endif %}
+      Dettaglio Commessa {{ commessa["durata"]["inizio"][2:4] }}{{ commessa["numero"] }}
       </li>
   </ol>
 </nav>
 
 <h5 class="my-2"><strong>
-{% if commessa["tipo"] == "interna" %}
-{{ commessa["numero"] }}
-{% elif commessa["tipo"] == "esterna" %}
-{{ commessa["durata"]["inizio"][2:4] }}{{ commessa["numero"] }}
-{% endif %}
-- {{ commessa["nome"] }} - {{ commessa["cliente"]["nome"] }}</strong>
+{{ commessa["durata"]["inizio"][2:4] }}{{ commessa["numero"] }} - {{ commessa["nome"] }} - {{ commessa["cliente"]["nome"] }}</strong>
 <a type="button" class="btn btn-warning btn-sm" href="{{ url_for("crea_report", id_commessa=commessa["id"]) }}">Scarica report Excel</a>
 </h5>
 

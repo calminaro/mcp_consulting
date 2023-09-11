@@ -65,70 +65,81 @@
         <div class="offcanvas-body d-md-flex flex-column p-0 pt-lg-3 overflow-y-auto">
         <p class="mx-3"><em>Benvenuto <span class="badge text-bg-success">{{ current_user.anagrafica["nome"] }} {{ current_user.anagrafica["cognome"] }}</span></em></p>
         <ul class="nav flex-column">
-          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-1 mb-1 text-muted text-uppercase">
-            <span><strong>Commesse</strong></span>
-            <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for("crea_commessa") }}">
-              <span class="material-symbols-outlined">add</span>
-            </a>
-          </h6>
           <li class="nav-item">
             {% if menu_page == "commesse" %}
             <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{{ url_for("commesse") }}">
             {% else %}
             <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for("commesse") }}">
             {% endif %}
-              Commesse Attive
+              <strong>Commesse Esterne</strong>
             </a>
           </li>
           {% if gestione %}
-          <li class="nav-item">
-            {% if menu_page == "storico_commesse" %}
-            <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{{ url_for("storico") }}">
-            {% else %}
-            <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for("storico") }}">
-            {% endif %}
-              Storico Commesse
-            </a>
-          </li>
-          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-1 mb-1 text-muted text-uppercase">
-            <span><strong>Offerte</strong></span>
-            <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for("crea_offerta") }}">
-              <span class="material-symbols-outlined">add</span>
-            </a>
-          </h6>
+          {% if menu_page == "commesse" or menu_page == "storico_commesse" or menu_page == "crea_commessa" %}
+            <li class="nav-item">
+              {% if menu_page == "storico_commesse" %}
+              <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{{ url_for("storico") }}">
+              {% else %}
+              <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for("storico") }}">
+              {% endif %}
+                <span class="material-symbols-outlined">subdirectory_arrow_right</span>Storico Commesse
+              </a>
+            </li>
+            <li class="nav-item">
+              {% if menu_page == "crea_commessa" %}
+              <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{{ url_for("crea_commessa") }}">
+              {% else %}
+              <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for("crea_commessa") }}">
+              {% endif %}
+                <span class="material-symbols-outlined">subdirectory_arrow_right</span>Nuova Commessa
+              </a>
+            </li>
+          {% endif %}
+
           <li class="nav-item">
             {% if menu_page == "offerte" %}
             <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{{ url_for("offerte") }}">
             {% else %}
             <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for("offerte") }}">
             {% endif %}
-              Storico Offerte
+              <strong>Offerte</strong>
             </a>
           </li>
-          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-1 mb-1 text-muted text-uppercase">
-            <span><strong>Commesse interne</strong></span>
-          </h6>
+          {% if menu_page == "offerte" or menu_page == "crea_offerta" %}
+            <li class="nav-item">
+              {% if menu_page == "crea_offerta" %}
+              <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{{ url_for("crea_offerta") }}">
+              {% else %}
+              <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for("crea_offerta") }}">
+              {% endif %}
+                <span class="material-symbols-outlined">subdirectory_arrow_right</span>Nuova Offerta
+              </a>
+            </li>
+          {% endif %}
+
           <li class="nav-item">
             {% if menu_page == "addestramento" %}
             <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{{ url_for("storico") }}">
             {% else %}
             <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for("storico") }}">
             {% endif %}
-              Addestramento
+              <strong>Commesse Interne</strong>
             </a>
           </li>
+<!--
           <li class="nav-item">
             {% if menu_page == "qualità" %}
-            <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{{ url_for("storico") }}">
+            <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{{ url_for("provvisoria") }}">
             {% else %}
-            <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for("storico") }}">
+            <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for("provvisoria") }}">
             {% endif %}
               Qualità
             </a>
           </li>
-          <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-1 mb-1 text-muted text-uppercase">
-            <span><strong>Amministrazione</strong></span>
-          </h6>
+-->
+
+          <hr>
+<!--
           <li class="nav-item">
             {% if menu_page == "utenti" %}
             <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{{ url_for("collaboratori") }}">
@@ -138,6 +149,7 @@
               Utenti
             </a>
           </li>
+-->
           <li class="nav-item">
             {% if menu_page == "database" %}
             <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{{ url_for("collaboratori") }}">
@@ -157,7 +169,9 @@
             </a>
           </li>
           {% endif %}
+
           <hr>
+
           <li class="nav-item">
             {% if menu_page == "account" %}
             <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{{ url_for("account") }}">

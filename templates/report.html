@@ -1,54 +1,5 @@
 {% extends "base.html" %}
 
-{% block menu %}
-<ul class="nav flex-column">
-  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-    <span><strong>Commesse</strong></span>
-  </h6>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("dashboard") }}">
-      Attive
-    </a>
-  </li>
-  {% if gestione %}
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("storico") }}">
-      Storico
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("nuova_commessa") }}">
-      Nuova Commessa
-    </a>
-  </li>
-  <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
-    <span><strong>Amministrazione</strong></span>
-  </h6>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("collaboratori") }}">
-      Gestione Database
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link active" aria-current="page" href="{{ url_for("report") }}">
-      Report
-    </a>
-  </li>
-  {% endif %}
-  <hr>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("account") }}">
-      Account
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for("logout") }}">
-      Logout
-    </a>
-  </li>
-</ul>
-{% endblock %}
-
 {% block corpo %}
 
 <h2 class="text-center"><strong>REPORT</strong></h2>
@@ -66,6 +17,13 @@
 
 
 <!-- Button trigger modal -->
+<button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#settimanaModal">
+  <div class="card" style="width: 18rem;">
+    <div class="card-body">
+      <h5 class="card-title">Report Settimanale</h5>
+    </div>
+  </div>
+</button>
 <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#meseModal">
   <div class="card" style="width: 18rem;">
     <div class="card-body">
@@ -82,6 +40,34 @@
 </button>
 
 <!-- Modal -->
+<div class="modal fade" id="settimanaModal" tabindex="-1" aria-labelledby="settimanaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="settimanaModalLabel">Report Settimanale</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+        <input type="hidden" id="id_form" name="id_form" value="report_settimanale">
+        <div class="mb-3">
+            <label for="message-text" class="col-form-label">Tipo di Report</label>
+            <select class="form-select" aria-label="Tipo di Report" id="tipo" name="tipo">
+              <option value="commesse">Commesse</option>
+              <option value="collaboratori">Collaboratori</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="settimana" class="form-label">Mese</label>
+            <input type="week" class="form-control" id="settimana" name="settimana">
+          </div>
+          <button type="submit" class="btn btn-warning">Scarica</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade" id="meseModal" tabindex="-1" aria-labelledby="meseModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
