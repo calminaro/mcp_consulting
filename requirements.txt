@@ -1,0 +1,17 @@
+cryptography==38.0.4
+Flask==2.3.2
+Flask-Cors==4.0.0
+Flask-Login==0.6.2
+Flask-Mail==0.9.1
+flask-mongoengine==1.0.0
+Flask-SQLAlchemy==3.0.5
+Flask-WTF==1.1.1
+future==0.18.3
+gunicorn==21.2.0
+Jinja2==3.1.2
+Markdown==3.4.3
+markdown-it-py==2.1.0
+MarkupSafe==2.1.2
+openpyxl==3.1.2
+SQLAlchemy==2.0.9
+sqlparse==0.4.4
