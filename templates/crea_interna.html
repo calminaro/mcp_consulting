@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block corpo %}
+<h2 class="text-center"><strong>NUOVA COMMESSA INTERNA</strong></h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="my-2 alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<form method="post">
+  <input type="hidden" id="id_form" name="id_form" value="inserisci_commessa">
+  <div class="mb-3">
+    <label for="nome" class="col-form-label"><strong>Nome Commessa</strong></label>
+    <input type="text" class="form-control" id="nome" name="nome">
+  </div>
+  <div class="mb-3">
+    <label for="data" class="col-form-label"><strong>Data apertura commessa</strong></label>
+    <input type="date" class="form-control" id="data" name="data">
+  </div>
+  <div class="mb-3">
+    <label for="note" class="col-form-label"><strong>Note</strong></label>
+    <textarea class="form-control" id="note" name="note" rows="2"></textarea>
+    <div id="noteHelp" class="form-text">Campo libero</div>
+  </div>
+  <button type="submit" class="btn btn-warning btn-sm">Inserisci</button>
+</form>
+
+
+{% endblock %}

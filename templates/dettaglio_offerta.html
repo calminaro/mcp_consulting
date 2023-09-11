@@ -15,12 +15,23 @@
 
 {% if gestione %}
 <div class="btn-group" role="group" aria-label="Basic example">
-<button type="button" class="btn btn-success btn-sm my-2" data-bs-toggle="modal" data-bs-target="#creacommessaModal" data-bs-id_offerta="{{ offerta["id"] }}">Crea Commessa</button>
-  <button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#commesseModal" data-bs-id_offerta="{{ offerta["id"] }}" data-bs-tmp_dati="{{ offerta | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Modifica</button>
-  <button type="button" class="btn btn-danger btn-sm my-2" data-bs-toggle="modal" data-bs-target="#eliminacommesseModal" data-bs-id_commessa="{{ offerta["id"] }}">Elimina</button>
+  <button type="button" class="btn btn-success btn-sm my-2" data-bs-toggle="modal" data-bs-target="#creacommessaModal" data-bs-id_offerta="{{ offerta["id"] }}">Crea Commessa</button>
+  <button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#offerteModal" data-bs-id_offerta="{{ offerta["id"] }}" data-bs-tmp_dati="{{ offerta | replace("'", "\"") | replace("False", "false") | replace("True", "true") }}">Modifica</button>
+  <button type="button" class="btn btn-danger btn-sm my-2" data-bs-toggle="modal" data-bs-target="#eliminaofferteModal" data-bs-id_commessa="{{ offerta["id"] }}">Elimina</button>
 </div>
 {% endif %}
 </h5>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="my-2 alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 
 <div class="row">
   <p>
@@ -56,7 +67,13 @@
       <td>{{ i["rev"] }}</td>
       {% endif %}
       <td>{{ i["file"]["nome"] }}</td>
-      <td><a type="button" class="btn btn-warning btn-sm" href="{{ url_for("download", id_file=i["file"]["id"]) }}">Download</a></td>
+      <td>
+      <div class="btn-group" role="group" aria-label="Basic example">
+        <button type="button" class="btn btn-warning btn-sm my-2" data-bs-toggle="modal" data-bs-target="#edit_fileModal" data-bs-id_offerta="{{ offerta["id"] }}" data-bs-numero_offerta="{{ offerta["numero"] }}" data-bs-id_file="{{ i["file"]["id"] }}">Modifica File</button>
+        <button type="button" class="btn btn-danger btn-sm my-2" data-bs-toggle="modal" data-bs-target="#delete_fileModal" data-bs-id_offerta="{{ offerta["id"] }}" data-bs-numero_offerta="{{ offerta["numero"] }}" data-bs-id_file="{{ i["file"]["id"] }}">Elimina File</button>
+      </div>
+        <a type="button" class="btn btn-warning btn-sm" href="{{ url_for("download", id_file=i["file"]["id"]) }}">Download</a>
+      </td>
     </tr>
     {% endfor %}
   </tbody>
@@ -64,10 +81,6 @@
 </div>
 
 {% endif %}
-
-<hr>
-
-<button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#lavorazioniModal" data-bs-id_offerta="{{ offerta["id"] }}" data-bs-numero_offerta="{{ offerta["numero"] }}" data-bs-tmp_dati="">Inserisci ore</button>
 
 <!--Modal per creare commesse-->
 <div class="modal fade" id="creacommessaModal" tabindex="-1" aria-labelledby="creacommessaModalLabel" aria-hidden="true">
@@ -107,6 +120,123 @@
   </div>
 </div>
 
+<!--Modal per modificare file-->
+<div class="modal fade" id="edit_fileModal" tabindex="-1" aria-labelledby="edit_fileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="edit_fileModalLabel">Aggiorna File</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="POST" enctype="multipart/form-data">
+          <input type="hidden" id="id_form" name="id_form" value="aggiorna_file">
+          <input type="hidden" id="id_offerta" name="id_offerta" value="">
+          <input type="hidden" id="id_file" name="id_file" value="">
+          <div class="mb-3">
+              <input type="file" class="form-control" id="file" name="file">
+            </div>
+        <button type="submit" class="btn btn-warning btn-sm">Carica</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Modal eliminare file-->
+<div class="modal fade" id="delete_fileModal" tabindex="-1" aria-labelledby="delete_fileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="delete_fileModalLabel">Elimina inserimento</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>ATTENZIONE: </strong>Non sarà possibile recuperare i dati eliminati!</p>
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="elimina_file">
+          <input type="hidden" id="id_offerta" name="id_offerta" value="">
+          <input type="hidden" id="id_file" name="id_file" value="">
+          <button type="submit" class="btn btn-danger btn-sm">Elimina</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Modal per le offerte-->
+<div class="modal fade" id="offerteModal" tabindex="-1" aria-labelledby="offerteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="offerteModalLabel">Modifica Offerta</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="modifica_offerta">
+          <input type="hidden" id="id_offerta" name="id_offerta" value="">
+          <div class="row">
+            <div class="col">
+              <label for="nome" class="col-form-label"><strong>ID Offerta</strong></label>
+              <div class="input-group mb-3">
+                <span class="input-group-text">{{ pre_suff["prefisso"] }}-</span>
+                <input type="text" class="form-control" aria-label="nome" id="nome" name="nome">
+                <span class="input-group-text">{{ pre_suff["suffisso"] }}-{{ anno }}</span></span>
+              </div>
+              <div class="mb-3">
+                  <label for="cliente" class="col-form-label"><strong>Cliente</strong></label>
+                  <select class="form-select" aria-label="Cliente" id="cliente" name="cliente">
+                    {% for i in clienti %}
+                    <option value="{{ i[0] }}">{{ i[1] }}</option>
+                    {% endfor %}
+                  </select>
+            </div>
+            <div class="mb-3">
+              <label for="n_ordine" class="col-form-label"><strong>Ordine di riferimento</strong></label>
+              <input type="text" class="form-control" id="n_ordine" name="n_ordine">
+            </div>
+          </div>
+          <div class="col">
+          <div class="mb-3">
+            <label for="data" class="col-form-label"><strong>Data creazione offerta</strong></label>
+            <input type="date" class="form-control" id="data" name="data">
+          </div>
+          <div class="mb-3">
+            <label for="note" class="col-form-label"><strong>Note</strong></label>
+            <textarea class="form-control" id="note" name="note" rows="2"></textarea>
+            <div id="noteHelp" class="form-text">Campo libero</div>
+          </div>
+          </div>
+          </div>
+          <button type="submit" class="btn btn-warning btn-sm">Modifica</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--Modal eliminare commesse-->
+<div class="modal fade" id="eliminaofferteModal" tabindex="-1" aria-labelledby="eliminaofferteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="eliminaofferteModalLabel">Elimina Offerta</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>ATTENZIONE: </strong>Non sarà possibile recuperare i dati eliminati!
+        <br>
+        Continua solo se l'offerta è stata creata per errore.</p>
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="elimina_offerta">
+          <input type="hidden" id="id_offerta" name="id_offerta" value="">
+          <button type="submit" class="btn btn-danger btn-sm">Elimina</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 const upload_fileModal = document.getElementById('upload_fileModal')
@@ -115,6 +245,68 @@ upload_fileModal.addEventListener('show.bs.modal', event => {
   const id_offerta = button.getAttribute('data-bs-id_offerta')
   const in_id_offerta = upload_fileModal.querySelector('#id_offerta')
   in_id_offerta.value = `${id_offerta}`
+})
+
+const edit_fileModal = document.getElementById('edit_fileModal')
+edit_fileModal.addEventListener('show.bs.modal', event => {
+  const button = event.relatedTarget
+  const id_offerta = button.getAttribute('data-bs-id_offerta')
+  const in_id_offerta = edit_fileModal.querySelector('#id_offerta')
+  in_id_offerta.value = `${id_offerta}`
+  const id_file = button.getAttribute('data-bs-id_file')
+  const in_id_file = edit_fileModal.querySelector('#id_file')
+  in_id_file.value = `${id_file}`
+})
+
+const delete_fileModal = document.getElementById('delete_fileModal')
+delete_fileModal.addEventListener('show.bs.modal', event => {
+  const button = event.relatedTarget
+  const id_offerta = button.getAttribute('data-bs-id_offerta')
+  const in_id_offerta = delete_fileModal.querySelector('#id_offerta')
+  in_id_offerta.value = `${id_offerta}`
+  const id_file = button.getAttribute('data-bs-id_file')
+  const in_id_file = delete_fileModal.querySelector('#id_file')
+  in_id_file.value = `${id_file}`
+})
+
+const offerteModal = document.getElementById('offerteModal')
+offerteModal.addEventListener('show.bs.modal', event => {
+  // Button that triggered the modal
+  const button = event.relatedTarget
+  // Extract info from data-bs-* attributes
+  const id_offerta = button.getAttribute('data-bs-id_offerta')
+  const tmp_dati = button.getAttribute('data-bs-tmp_dati')
+  const modalTitle = offerteModal.querySelector('.modal-title')
+  const id_form = offerteModal.querySelector('#id_form')
+  const in_id_commessa = offerteModal.querySelector('#id_offerta')
+  const nome = offerteModal.querySelector('#nome')
+  const cliente = offerteModal.querySelector('#cliente')
+  const n_ordine = offerteModal.querySelector('#n_ordine')
+  const data = offerteModal.querySelector('#data')
+  const note = offerteModal.querySelector('#note')
+  in_id_commessa.value = `${id_offerta}`
+  modalTitle.textContent = `Modifica offerta ${JSON.parse(tmp_dati)["numero"]}`
+  nome.value = `${JSON.parse(tmp_dati)["id_numero"]}`
+  cliente.value = `${JSON.parse(tmp_dati)["cliente"]["id"]}`
+  n_ordine.value = `${JSON.parse(tmp_dati)["ordine_rif"]}`
+  data.value = `${JSON.parse(tmp_dati)["versioni"]["data"]}`
+  note.value = `${JSON.parse(tmp_dati)["note"]}`
+})
+
+const eliminaofferteModal = document.getElementById('eliminaofferteModal')
+eliminaofferteModal.addEventListener('show.bs.modal', event => {
+  // Button that triggered the modal
+  const button = event.relatedTarget
+  // Extract info from data-bs-* attributes
+  const id_commessa = button.getAttribute('data-bs-id_commessa')
+  // If necessary, you could initiate an AJAX request here
+  // and then do the updating in a callback.
+  //
+  // Update the modal's content.
+  const modalTitle = eliminaofferteModal.querySelector('.modal-title')
+  const in_id_offerta = eliminaofferteModal.querySelector('#id_offerta')
+  in_id_commessa.value = `${id_commessa}`
+  // modalTitle.textContent = `Elimina`
 })
 </script>
 {% endblock %}

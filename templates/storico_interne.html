@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block corpo %}
-<h2 class="text-center"><strong>STORICO COMMESSE</strong></h2>
+<h2 class="text-center"><strong>STORICO COMMESSE INTERNE</strong></h2>
 
 <div class="row">
 <div class="col">
@@ -33,7 +33,6 @@
     <tr>
       <th scope="col">N° Commessa<br><input type="text" class="form-control form-control-sm" id="s_id" onkeyup="f_id()" placeholder=""></th>
       <th scope="col">Nome<br><input type="text" class="form-control form-control-sm" id="s_nome" onkeyup="f_nome()" placeholder=""></th>
-      <th scope="col">Cliente<br><input type="text" class="form-control form-control-sm" id="s_cliente" onkeyup="f_cliente()" placeholder=""></th>
       <th scope="col">Data apertura<br><input type="text" class="form-control form-control-sm" id="s_data_a" onkeyup="f_data_a()" placeholder=""></th>
       <th scope="col">Data chiusura<br><input type="text" class="form-control form-control-sm" id="s_data_c" onkeyup="f_data_c()" placeholder=""></th>
       <th scope="col"></th>
@@ -44,12 +43,11 @@
     {% if i["durata"]["fine"] %}
     {% if not anno or i["durata"]["inizio"][0:4] == anno %}
     <tr>
-      <td><strong>{{ i["durata"]["inizio"][2:4] }}{{ i["numero"] }}</strong></td>
+      <td><strong>{{ i["numero"] }}</strong></td>
       <td>{{ i["nome"] }}</td>
-      <td>{{ i["cliente"]["nome"] }}</td>
       <td>{{ i["durata"]["inizio"][8:10] }}/{{ i["durata"]["inizio"][5:7] }}/{{ i["durata"]["inizio"][0:4] }}</td>
       <td>{{ i["durata"]["fine"][8:10] }}/{{ i["durata"]["fine"][5:7] }}/{{ i["durata"]["fine"][0:4] }}</td>
-      <td><a type="button" class="btn btn-warning btn-sm" href="{{ url_for("dettaglio_storico", id_commessa=i["id"]) }}">Dettaglio</a></td>
+      <td><a type="button" class="btn btn-warning btn-sm" href="{{ url_for("dettaglio_storico_interna", id_commessa=i["id"]) }}">Dettaglio</a></td>
     </tr>
     {% endif %}
     {% endif %}
@@ -60,32 +58,27 @@
 <script>
 var s_id = document.getElementById("s_id");
 var s_nome = document.getElementById("s_nome");
-var s_cliente = document.getElementById("s_cliente");
 var s_data_a = document.getElementById("s_data_a");
 var s_data_c = document.getElementById("s_data_c");
 
 s_id.style.display = "none";
 s_nome.style.display = "none";
-s_cliente.style.display = "none";
 s_data_a.style.display = "none";
 s_data_c.style.display = "none";
 
 function mostra_filtri() {
   var s_id = document.getElementById("s_id");
   var s_nome = document.getElementById("s_nome");
-  var s_cliente = document.getElementById("s_cliente");
   var s_data_a = document.getElementById("s_data_a");
   var s_budget = document.getElementById("s_data_c");
   if (s_id.style.display === "none") {
     s_id.style.display = "block";
     s_nome.style.display = "block";
-    s_cliente.style.display = "block";
     s_data_a.style.display = "block";
     s_data_c.style.display = "block";
   } else {
     s_id.style.display = "none";
     s_nome.style.display = "none";
-    s_cliente.style.display = "none";
     s_data_a.style.display = "none";
     s_data_c.style.display = "none";
   }
@@ -124,28 +117,6 @@ function f_nome() {
   // Loop through all table rows, and hide those who don't match the search query
   for (i = 0; i < tr.length; i++) {
     td = tr[i].getElementsByTagName("td")[1];
-    if (td) {
-      txtValue = td.textContent || td.innerText;
-      if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        tr[i].style.display = "";
-      } else {
-        tr[i].style.display = "none";
-      }
-    }
-  }
-}
-
-function f_cliente() {
-  // Declare variables
-  var input, filter, table, tr, td, i, txtValue;
-  input = document.getElementById("s_cliente");
-  filter = input.value.toUpperCase();
-  table = document.getElementById("storico");
-  tr = table.getElementsByTagName("tr");
-
-  // Loop through all table rows, and hide those who don't match the search query
-  for (i = 0; i < tr.length; i++) {
-    td = tr[i].getElementsByTagName("td")[2];
     if (td) {
       txtValue = td.textContent || td.innerText;
       if (txtValue.toUpperCase().indexOf(filter) > -1) {
