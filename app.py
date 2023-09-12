@@ -179,8 +179,7 @@ def get_costo(tmp_id, durata):
         costo += ct["trasferta"]
         tmp_durata = 8.0
     user = User.query.filter_by(id=tmp_id).first()
-    #user_costo = float(user.collaboratore["costo"])
-    user_costo = float(15)
+    user_costo = float(user.collaboratore["costo"])
     costo = costo + (tmp_durata*user_costo)
     return costo
 
@@ -1249,7 +1248,8 @@ def report_periodo(tipo, anno, mese, settimana):
                 "collaboratore": {"id": lavorazione[1],"nome": get_nome("collaboratore", lavorazione[1])},
                 "commessa" : lavorazione[2],
                 "tipo": {"id": lavorazione[3],"nome": get_nome("tipo_lavorazione", lavorazione[3])},
-                "durata": json.loads(lavorazione[4])
+                "durata": json.loads(lavorazione[4]),
+                "tipologia": "lavorazione",
                 }
             if int(mese) == 0 and int(tmp_lavorazione["durata"]["data"][0:4]) == int(anno):
                 tmp_lavorazioni.append(tmp_lavorazione)
@@ -1260,6 +1260,27 @@ def report_periodo(tipo, anno, mese, settimana):
                     giorno = datetime.datetime.strptime(settimana + '-1', "%Y-W%W-%w")+datetime.timedelta(days=y)
                     if int(tmp_lavorazione["durata"]["data"][8:10]) == int(giorno.day) and int(tmp_lavorazione["durata"]["data"][5:7]) == int(giorno.month) and int(tmp_lavorazione["durata"]["data"][0:4]) == int(giorno.year):
                         tmp_lavorazioni.append(tmp_lavorazione)
+
+        cur.execute("select * from ore_interne")
+        lavorazioni = cur.fetchall()
+        for lavorazione in lavorazioni:
+            tmp_lavorazione = {
+                "id": lavorazione[0],
+                "collaboratore": {"id": lavorazione[1],"nome": get_nome("collaboratore", lavorazione[1])},
+                "commessa" : lavorazione[2],
+                "durata": json.loads(lavorazione[3]),
+                "tipologia": "interne",
+                }
+            if int(mese) == 0 and int(tmp_lavorazione["durata"]["data"][0:4]) == int(anno):
+                tmp_lavorazioni.append(tmp_lavorazione)
+            elif int(tmp_lavorazione["durata"]["data"][5:7]) == int(mese) and int(tmp_lavorazione["durata"]["data"][0:4]) == int(anno) and settimana == "0":
+                tmp_lavorazioni.append(tmp_lavorazione)
+            elif settimana != "0":
+                for y in range(7):
+                    giorno = datetime.datetime.strptime(settimana + '-1', "%Y-W%W-%w")+datetime.timedelta(days=y)
+                    if int(tmp_lavorazione["durata"]["data"][8:10]) == int(giorno.day) and int(tmp_lavorazione["durata"]["data"][5:7]) == int(giorno.month) and int(tmp_lavorazione["durata"]["data"][0:4]) == int(giorno.year):
+                        tmp_lavorazioni.append(tmp_lavorazione)
+        tmp_lavorazioni.sort(key = lambda x: datetime.datetime.strptime(x["durata"]["data"], '%Y-%m-%d'))
         utenti = User.query.all()
         workbook = load_workbook(filename = static_path+'report_collaboratori.xlsx')
         for i in utenti:
@@ -1269,35 +1290,55 @@ def report_periodo(tipo, anno, mese, settimana):
             tmp_riga = 2
             for j in tmp_lavorazioni:
                 if int(j["collaboratore"]["id"]) == int(i.id):
-                    cur.execute("select * from commesse where id = ?", [j["commessa"]])
-                    commesse = cur.fetchall()
-                    commessa = commesse[0]
-                    tmp_specifiche = {
-                            "budget_ore": json.loads(commessa[4])["budget_ore"],
-                            "budget_euro": json.loads(commessa[4])["budget_euro"],
-                            "project_manager": {"id": json.loads(commessa[4])["project_manager"],"nome": get_nome("collaboratore", json.loads(commessa[4])["project_manager"])},
-                            "tipologia": get_tipo_commessa(json.loads(commessa[4])["tipologia"])
+                    if j["tipologia"] == "lavorazione":
+                        cur.execute("select * from commesse where id = ?", [j["commessa"]])
+                        commesse = cur.fetchall()
+                        commessa = commesse[0]
+                        tmp_specifiche = {
+                                "budget_ore": json.loads(commessa[4])["budget_ore"],
+                                "budget_euro": json.loads(commessa[4])["budget_euro"],
+                                "project_manager": {"id": json.loads(commessa[4])["project_manager"],"nome": get_nome("collaboratore", json.loads(commessa[4])["project_manager"])},
+                                "tipologia": get_tipo_commessa(json.loads(commessa[4])["tipologia"])
+                                }
+                        tmp_commessa = {
+                            "id": commessa[0],
+                            "numero": get_numero_commessa(commessa[1]),
+                            "nome": commessa[2],
+                            "cliente": {"id": commessa[3],"nome": get_nome("cliente", commessa[3])},
+                            "specifiche": tmp_specifiche,
+                            "durata": json.loads(commessa[5]),
+                            "note": commessa[6]
                             }
-                    tmp_commessa = {
-                        "id": commessa[0],
-                        "numero": get_numero_commessa(commessa[1]),
-                        "tipo": commessa[2],
-                        "nome": commessa[3],
-                        "cliente": {"id": commessa[3],"nome": get_nome("cliente", commessa[3])},
-                        "specifiche": tmp_specifiche,
-                        "durata": json.loads(commessa[5]),
-                        "note": commessa[6]
-                        }
-                    foglio.cell(row=tmp_riga, column=1).value = j["durata"]["data"][8:10]+"/"+j["durata"]["data"][5:7]+"/"+j["durata"]["data"][0:4]
-                    foglio.cell(row=tmp_riga, column=2).value = tmp_commessa["numero"]
-                    foglio.cell(row=tmp_riga, column=3).value = tmp_commessa["nome"]
-                    foglio.cell(row=tmp_riga, column=4).value = j["tipo"]["nome"]
-                    foglio.cell(row=tmp_riga, column=5).value = float(j["durata"]["ore"])
-                    if j["durata"]["trasferta"]:
-                        foglio.cell(row=tmp_riga, column=6).value = "Si"
-                    else:
-                        foglio.cell(row=tmp_riga, column=6).value = "No"
-                    tmp_riga += 1
+                        foglio.cell(row=tmp_riga, column=1).value = j["durata"]["data"][8:10]+"/"+j["durata"]["data"][5:7]+"/"+j["durata"]["data"][0:4]
+                        foglio.cell(row=tmp_riga, column=2).value = tmp_commessa["numero"]
+                        foglio.cell(row=tmp_riga, column=3).value = tmp_commessa["nome"]
+                        foglio.cell(row=tmp_riga, column=4).value = j["tipo"]["nome"]
+                        foglio.cell(row=tmp_riga, column=5).value = float(j["durata"]["ore"])
+                        if j["durata"]["trasferta"]:
+                            foglio.cell(row=tmp_riga, column=6).value = "Si"
+                        else:
+                            foglio.cell(row=tmp_riga, column=6).value = "No"
+                        tmp_riga += 1
+                    elif j["tipologia"] == "interne":
+                        cur.execute("select * from interne where id = ?", [j["commessa"]])
+                        commesse = cur.fetchall()
+                        commessa = commesse[0]
+                        tmp_commessa = {
+                            "id": commessa[0],
+                            "numero": get_numero_commessa(commessa[1]),
+                            "nome": commessa[2],
+                            "durata": json.loads(commessa[3]),
+                            "note": commessa[4]
+                            }
+                        foglio.cell(row=tmp_riga, column=1).value = j["durata"]["data"][8:10]+"/"+j["durata"]["data"][5:7]+"/"+j["durata"]["data"][0:4]
+                        foglio.cell(row=tmp_riga, column=2).value = tmp_commessa["numero"]
+                        foglio.cell(row=tmp_riga, column=3).value = tmp_commessa["nome"]
+                        foglio.cell(row=tmp_riga, column=5).value = float(j["durata"]["ore"])
+                        if j["durata"]["trasferta"]:
+                            foglio.cell(row=tmp_riga, column=6).value = "Si"
+                        else:
+                            foglio.cell(row=tmp_riga, column=6).value = "No"
+                        tmp_riga += 1
         mcpDB.commit()
         mcpDB.close()
         try:
