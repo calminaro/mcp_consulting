@@ -47,7 +47,9 @@ def load_user(user_id):
 
 utentiDB_path = "utenti.db"
 mcpDB_path = "mcp.db"
-static_path = "/home/calminaro/Documenti/mcp_consulting/static/"
+
+#DA MODIFICARE PER IL DEPLOY
+static_path = cr["static_path"]
 
 #Genera e trova i numeri commessa
 def iter_all_strings():
@@ -190,6 +192,18 @@ def anni_commesse():
         if not str(i["durata"]["inizio"][0:4]) in anni:
             anni.append(str(i["durata"]["inizio"][0:4]))
     return anni
+
+def get_grafico_commessa(dati):
+    guadagno = dati["budget_euro"] - dati["euro_spesi"]
+    tmp_ind = int(guadagno/dati["ore_lavorate"])
+    grafico = "red"
+    if tmp_ind < 25:
+        grafico = "red"
+    elif tmp_ind == 25:
+        grafico = "yellow"
+    elif tmp_ind > 25:
+        grafico = "green"
+    return grafico
 
 def insert_edit_lavorazione(dati):
     mcpDB = sqlite3.connect(mcpDB_path)
@@ -394,7 +408,8 @@ def dati_mcp(tipo):
                 "note": commessa[6],
                 "offerta": {"id": tmp_id_offerta,"numero": tmp_numero},
                 "file": commessa[8],
-                "lavorazioni": tmp_lavorazioni
+                "lavorazioni": tmp_lavorazioni,
+                "qualita": get_grafico_commessa(tmp_specifiche)
                 }
             dati.append(tmp_commessa)
 
@@ -931,8 +946,7 @@ def dettaglio_offerta(id_offerta):
                     flash("Nessun file selezionato!", "warning")
                     return render_template("offerte.html", pagina=pagina, gestione=gestisce(), dati=dati_mcp("offerte"), clienti=get_clienti(), utenti=User.query.all(), menu_page="offerte")
                 cur.execute("INSERT INTO file (nome, dati) VALUES (?,?)", [secure_filename(file.filename), file.read()])
-                cur.execute("select * from file where nome = ?", [secure_filename(file.filename)])
-                id_file = cur.fetchall()[0][0]
+                id_file = cur.lastrowid
                 cur.execute("select versioni from offerte where id = ?", [int(request.form["id_offerta"])])
                 offerte = cur.fetchall()
                 tmp_rev = 0
@@ -959,7 +973,8 @@ def dettaglio_offerta(id_offerta):
                 if file.filename == "":
                     flash("Nessun file selezionato!", "warning")
                     return render_template("offerte.html", pagina=pagina, gestione=gestisce(), dati=dati_mcp("offerte"), clienti=get_clienti(), utenti=User.query.all(), menu_page="offerte")
-                cur.execute("UPDATE file SET nome = ?, dati = ? WHERE id = ?", [secure_filename(file.filename), file.read(), int(request.form["id_file"])])
+                tmp_uuid = str(uuid.uuid4()) + str(datetime.datetime.now()).replace(" ", "-")
+                cur.execute("UPDATE file SET nome = ?, dati = ?, uuid = ? WHERE id = ?", [secure_filename(file.filename), file.read(), tmp_uuid, int(request.form["id_file"])])
                 mcpDB.commit()
                 mcpDB.close()
                 flash("File caricato con successo!", "success")
@@ -1190,7 +1205,6 @@ def report_periodo(tipo, anno, mese, settimana):
                     for y in range(7):
                         giorno = datetime.datetime.strptime(settimana + '-1', "%Y-W%W-%w")+datetime.timedelta(days=y)
                         if int(j["durata"]["data"][8:10]) == int(giorno.day) and int(j["durata"]["data"][5:7]) == int(giorno.month) and int(j["durata"]["data"][0:4]) == int(giorno.year):
-                            print("yes")
                             tmp_bool = True
             if tmp_bool:
                 commesse.append(i)
@@ -1226,14 +1240,14 @@ def report_periodo(tipo, anno, mese, settimana):
             workbook.remove(workbook['base'])
             workbook.save(filename=static_path+"report_commesse_compilato.xlsx")
         except:
-            flash("Qualcosa non ha funzionato!", "warning")
+            flash("Non ci sono commesse nel periodo selezionato!", "warning")
             return redirect(url_for("report"))
         if int(mese) == 0:
             nome_file = "report_commesse_"+anno+".xlsx"
         elif settimana == "0":
-            nome_file = "report_collaboratori_"+mese+"_"+anno+".xlsx"
+            nome_file = "report_commesse_"+mese+"_"+anno+".xlsx"
         else:
-            nome_file = "report_collaboratori_"+settimana+".xlsx"
+            nome_file = "report_commesse_"+settimana+".xlsx"
 
         return send_file(static_path+"report_commesse_compilato.xlsx", as_attachment=True, download_name=nome_file)
     elif tipo == "collaboratori":
