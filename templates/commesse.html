@@ -307,9 +307,25 @@ function f_guadagno() {
       <p><strong>Note: </strong>{{ i["note"] }}</p>
       </div>
       <div class="col">
-        <p><strong>Indicatore Qualità: </strong>
-        <img class="" src="/static/{{ i["qualita"] }}.svg" alt="" height="100">
-        </p>
+      {% if gestione %}
+        <div class="row">
+        <div class="col">
+          <p><strong>Indicatore Qualità</strong>
+          <br>
+          Guadagno[€] / OreLavorate
+          </p>
+        </div>
+        <div class="col">
+          {% if i["specifiche"]["budget_euro"] == 0 %}
+          <div class="alert alert-info" role="alert">
+            IMPOSSIBILE CALCOLARE IL GUADAGNO
+          </div>
+          {% else %}
+          <img class="" src="/static/{{ i["qualita"] }}.svg" alt="" height="120">
+          {% endif %}
+        </div>
+        </div>
+      {% endif %}
       </div>
     </div>
 
@@ -338,7 +354,7 @@ function f_guadagno() {
           <td>{{ i["specifiche"]["budget_ore"] }}</td>
           {% endif %}
           {% if i["specifiche"]["budget_euro"] == 0 %}
-          <td>--</td>
+          <td>NESSUN BUDGET IMPOSTATO</td>
           <td>--</td>
           {% else %}
           <td>{{ i["specifiche"]["budget_euro"] }}</td>
@@ -534,9 +550,9 @@ function f_guadagno() {
           <div class="mb-3">
             <label for="message-text" class="col-form-label">Tipologia</label>
             <select class="form-select" aria-label="Tipologia" id="tipo" name="tipo">
-              <option value="1">Supporti</option>
-              <option value="2">Piping</option>
-              <option value="3">Stress Analysis</option>
+              {% for i in tipi_lavorazione %}
+                <option value="{{ i[0] }}">{{ i[2] }}</option>
+              {% endfor %}
               <option value="0">Altro</option>
             </select>
           </div>

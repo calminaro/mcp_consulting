@@ -16,19 +16,28 @@
 <a type="button" class="btn btn-warning btn-sm" href="{{ url_for("crea_report", id_commessa=commessa["id"]) }}">Scarica report Excel</a>
 </h5>
 
-<p><strong>Tipologia: </strong>
-{% for i in commessa["specifiche"]["tipologia"] %}
-  {{ i["nome"] }}
-{% endfor %}
-</p>
+<div class="row">
+  <div class="col">
+  <p><strong>Tipologia: </strong>
+  {% for i in commessa["specifiche"]["tipologia"] %}
+    {{ i["nome"] }}
+  {% endfor %}
+  </p>
 
-<p><strong>Offerta: </strong>
-{% if commessa["offerta"]["id"] != 0 %}
-<a href="{{ url_for("dettaglio_offerta", id_offerta=commessa["offerta"]["id"]) }}">{{ commessa["offerta"]["numero"] }}</a>
-{% endif %}
-</p>
+  <p><strong>Offerta: </strong>
+  {% if commessa["offerta"]["id"] != 0 %}
+  <a href="{{ url_for("dettaglio_offerta", id_offerta=commessa["offerta"]["id"]) }}">{{ commessa["offerta"]["numero"] }}</a>
+  {% endif %}
+  </p>
 
-<p><strong>Note: </strong>{{ commessa["note"] }}</p>
+  <p><strong>Note: </strong>{{ commessa["note"] }}</p>
+  </div>
+  <div class="col">
+    <p><strong>Indicatore Qualità: </strong>
+    <img class="" src="/static/{{ commessa["qualita"] }}.svg" alt="" height="120">
+    </p>
+  </div>
+</div>
 
 <div class="table-responsive">
 <table class="table">

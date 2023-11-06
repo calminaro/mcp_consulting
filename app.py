@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, url_for, redirect, flash, Markup, abort, send_file
+from flask import Flask, request, render_template, url_for, redirect, flash, abort, send_file
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from openpyxl import Workbook, load_workbook
@@ -47,8 +47,6 @@ def load_user(user_id):
 
 utentiDB_path = "utenti.db"
 mcpDB_path = "mcp.db"
-
-#DA MODIFICARE PER IL DEPLOY
 static_path = cr["static_path"]
 
 #Genera e trova i numeri commessa
@@ -194,15 +192,18 @@ def anni_commesse():
     return anni
 
 def get_grafico_commessa(dati):
-    guadagno = dati["budget_euro"] - dati["euro_spesi"]
-    tmp_ind = int(guadagno/dati["ore_lavorate"])
+    try:
+        guadagno = dati["budget_euro"] - dati["euro_spesi"]
+        tmp_ind = int(guadagno/dati["ore_lavorate"])
+    except ZeroDivisionError:
+        tmp_ind = 28
     grafico = "red"
-    if tmp_ind < 25:
+    if tmp_ind < 23:
         grafico = "red"
-    elif tmp_ind == 25:
-        grafico = "yellow"
-    elif tmp_ind > 25:
+    elif tmp_ind > 27:
         grafico = "green"
+    else:
+        grafico = "yellow"
     return grafico
 
 def insert_edit_lavorazione(dati):
@@ -929,7 +930,8 @@ def dettaglio_storico(id_commessa):
         "durata": json.loads(commesse[0][5]),
         "note": commesse[0][6],
         "lavorazioni": tmp_lavorazioni,
-        "offerta": {"id": tmp_id_offerta,"numero": tmp_numero}
+        "offerta": {"id": tmp_id_offerta,"numero": tmp_numero},
+        "qualita": get_grafico_commessa(tmp_specifiche)
         }
     return render_template("dettaglio_storico.html", commessa=tmp_commessa, gestione=gestisce(), clienti=get_clienti(), utenti=User.query.all(), tipi_lavorazione=get_tipo_lavorazione(), menu_page="storico")
 
