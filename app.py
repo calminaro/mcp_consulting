@@ -592,7 +592,65 @@ def commesse(pagina):
                 }
             insert_edit_commessa(tmp_dati)
             flash("Commessa chiusa con successo!", "success")
-    return render_template("commesse.html", pagina=pagina, gestione=gestisce(), dati=dati_mcp("commesse_complete"), clienti=get_clienti(), utenti=User.query.all(), tipi_lavorazione=get_tipo_lavorazione(), menu_page="commesse")
+    if pagina == "riepilogo":
+        return render_template("commesse.html", pagina=pagina, gestione=gestisce(), dati=dati_mcp("commesse_complete"), clienti=get_clienti(), utenti=User.query.all(), tipi_lavorazione=get_tipo_lavorazione(), menu_page="commesse")
+    # else
+    mcpDB = sqlite3.connect(mcpDB_path)
+    cur = mcpDB.cursor()
+    cur.execute("select * from commesse where id = ?", [int(pagina)])
+    commesse = cur.fetchall()
+    cur.execute("select * from lavorazioni where commessa = ?", [int(pagina)])
+    lavorazioni = cur.fetchall()
+    mcpDB.commit()
+    mcpDB.close()
+    tmp_lavorazioni = []
+    ore_lavorate = 0.0
+    euro_spesi = 0.0
+    for lavorazione in lavorazioni:
+        tmp_lavorazione = {
+            "id": lavorazione[0],
+            "collaboratore": {"id": lavorazione[1],"nome": get_nome("collaboratore", lavorazione[1])},
+            "tipo": {"id": lavorazione[3],"nome": get_nome("tipo_lavorazione", lavorazione[3])},
+            "durata": json.loads(lavorazione[4]),
+            "costo": get_costo(lavorazione[1], json.loads(lavorazione[4]))
+            }
+        ore_lavorate += float(tmp_lavorazione["durata"]["ore"])
+        euro_spesi += tmp_lavorazione["costo"]
+        tmp_lavorazioni.append(tmp_lavorazione)
+    tmp_lavorazioni.sort(key = lambda x: datetime.datetime.strptime(x["durata"]["data"], '%Y-%m-%d'))
+    tmp_specifiche = {
+            "budget_ore": float(json.loads(commesse[0][4])["budget_ore"]),
+            "budget_euro": float(json.loads(commesse[0][4])["budget_euro"]),
+            "ore_lavorate": ore_lavorate,
+            "euro_spesi": euro_spesi,
+            "project_manager": {"id": json.loads(commesse[0][4])["project_manager"],"nome": get_nome("collaboratore", json.loads(commesse[0][4])["project_manager"])},
+            "tipologia": get_tipo_commessa(json.loads(commesse[0][4])["tipologia"])
+            }
+    if commesse[0][7] != 0:
+        mcpDB = sqlite3.connect(mcpDB_path)
+        cur = mcpDB.cursor()
+        cur.execute("select numero, versioni from offerte where id = ?", [commesse[0][7]])
+        offerte = cur.fetchall()[0]
+        tmp_id_offerta = int(commesse[0][7])
+        tmp_numero = get_numero_offerta(offerte[0], json.loads(offerte[1]))
+        mcpDB.commit()
+        mcpDB.close()
+    else:
+        tmp_id_offerta = 0
+        tmp_numero = 0
+    tmp_commessa = {
+        "id": commesse[0][0],
+        "numero": get_numero_commessa(commesse[0][1]),
+        "nome": commesse[0][2],
+        "cliente": {"id": commesse[0][3],"nome": get_nome("cliente", commesse[0][3])},
+        "specifiche": tmp_specifiche,
+        "durata": json.loads(commesse[0][5]),
+        "note": commesse[0][6],
+        "lavorazioni": tmp_lavorazioni,
+        "offerta": {"id": tmp_id_offerta,"numero": tmp_numero},
+        "qualita": get_grafico_commessa(tmp_specifiche)
+        }
+    return render_template("dettaglio_commessa.html", commessa=tmp_commessa, gestione=gestisce(), clienti=get_clienti(), utenti=User.query.all(), tipi_lavorazione=get_tipo_lavorazione(), menu_page="commesse")
 
 @app.route("/offerte", methods=("GET", "POST"))
 @login_required
