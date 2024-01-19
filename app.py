@@ -474,8 +474,13 @@ def dati_mcp(tipo):
 @app.route("/")
 def homepage():
     if current_user.is_authenticated:
-        return redirect(url_for("commesse"))
+        return redirect(url_for("dashboard"))
     return render_template("index.html")
+
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    return render_template("dashboard.html", gestione=gestisce(), menu_page="dashboard")
 
 @app.route("/commesse", defaults={ "pagina": "riepilogo" }, methods=("GET", "POST"))
 @app.route("/commesse/<string:pagina>", methods=("GET", "POST"))
