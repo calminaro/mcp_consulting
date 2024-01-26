@@ -660,6 +660,8 @@ def commesse(pagina):
 @app.route("/offerte", methods=("GET", "POST"))
 @login_required
 def offerte():
+    if not gestisce():
+        return redirect(url_for("dashboard"))
     return render_template("offerte.html", gestione=gestisce(), dati=reversed(dati_mcp("offerte")), clienti=get_clienti(), utenti=User.query.all(), menu_page="offerte")
 
 @app.route("/interne", defaults={ "pagina": "riepilogo" }, methods=("GET", "POST"))
@@ -763,6 +765,8 @@ def interne(pagina):
 @app.route("/crea_commessa/<string:offerta>", methods=("GET", "POST"))
 @login_required
 def crea_commessa(offerta):
+    if not gestisce():
+        return redirect(url_for("dashboard"))
     if request.method == "POST":
         if request.form["id_form"] == "inserisci_commessa":
             tipi = []
@@ -855,6 +859,8 @@ def crea_commessa(offerta):
 @app.route("/crea_offerta", methods=("GET", "POST"))
 @login_required
 def crea_offerta():
+    if not gestisce():
+        return redirect(url_for("dashboard"))
     if request.method == "POST":
         if request.form["id_form"] == "inserisci_offerta":
             try:
@@ -907,6 +913,8 @@ def crea_offerta():
 @app.route("/crea_interna", methods=("GET", "POST"))
 @login_required
 def crea_interna():
+    if not gestisce():
+        return redirect(url_for("dashboard"))
     if request.method == "POST":
         if request.form["id_form"] == "inserisci_commessa":
             try:
@@ -1001,6 +1009,8 @@ def dettaglio_storico(id_commessa):
 @app.route("/dettaglio_offerta/<string:id_offerta>", methods=("GET", "POST"))
 @login_required
 def dettaglio_offerta(id_offerta):
+    if not gestisce():
+        return redirect(url_for("dashboard"))
     if request.method == "POST":
         if request.form["id_form"] == "inserisci_file":
             try:
