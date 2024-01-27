@@ -4,5 +4,15 @@
 
 <h2 class="text-center"><strong>Benvenuto {{ current_user.anagrafica["nome"] }} {{ current_user.anagrafica["cognome"] }}</strong><br><img class="m-4" src="/static/LOGO.png" alt="" height="200"></h2>
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="my-2 alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
 
 {% endblock %}

@@ -13,6 +13,17 @@
 
 <h5 class="my-2"><strong>{{ commessa["nome"] }} - {{ commessa["cliente"]["nome"] }}</strong>
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="my-2 alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
 {% if gestione %}
 <div class="btn-group" role="group" aria-label="Basic example">
   <button type="button" class="btn btn-success btn-sm my-2" data-bs-toggle="modal" data-bs-target="#chiudi_commesseModal" data-bs-id_commessa="{{ commessa["id"] }}">Chiudi</button>
@@ -33,6 +44,10 @@
   <p><strong>Offerta: </strong>
   {% if commessa["offerta"]["id"] != 0 %}
   <a href="{{ url_for("dettaglio_offerta", id_offerta=commessa["offerta"]["id"]) }}">{{ commessa["offerta"]["numero"] }}</a>
+  {% else %}
+    {% if gestione %}
+    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#collegaOffertaModal" data-bs-id_commessa="{{ commessa["id"] }}">Collega Offerta</button>
+    {% endif %}
   {% endif %}
   </p>
 
@@ -340,6 +355,34 @@
   </div>
 </div>
 
+<!--Modal collegare offerta-->
+<div class="modal fade" id="collegaOffertaModal" tabindex="-1" aria-labelledby="collegaOffertaModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="collegaOffertaModalLabel">Inserisci</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="collega_offerta">
+          <input type="hidden" id="id_commessa" name="id_commessa" value="">
+          <div class="mb-3">
+            <label for="message-text" class="col-form-label">Seleziona Offerta</label>
+            <select class="form-select" aria-label="Tipologia" id="tipo" name="tipo">
+              {% for i in offerte %}
+                <option value="{{ i["id"] }}">{{ i["numero"] }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-warning btn-sm">Conferma</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const lavorazioniModal = document.getElementById('lavorazioniModal')
 lavorazioniModal.addEventListener('show.bs.modal', event => {
@@ -500,6 +543,17 @@ chiudi_commesseModal.addEventListener('show.bs.modal', event => {
   // Update the modal's content.
   const in_id_commessa = chiudi_commesseModal.querySelector('#id_commessa')
   in_id_commessa.value = `${id_commessa}`
+})
+
+const collegaOffertaModal = document.getElementById('collegaOffertaModal')
+collegaOffertaModal.addEventListener('show.bs.modal', event => {
+  const button = event.relatedTarget
+  const id_commessa = button.getAttribute('data-bs-id_commessa')
+
+  const modalTitle = collegaOffertaModal.querySelector('.modal-title')
+  const in_id_commessa = collegaOffertaModal.querySelector('#id_commessa')
+  in_id_commessa.value = `${id_commessa}`
+  // modalTitle.textContent = `Elimina`
 })
 
 const toastTrigger = document.getElementById('liveToastBtn')

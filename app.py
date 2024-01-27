@@ -597,6 +597,14 @@ def commesse(pagina):
                 }
             insert_edit_commessa(tmp_dati)
             flash("Commessa chiusa con successo!", "success")
+        elif request.form["id_form"] == "collega_offerta":
+            tmp_dati = {
+                "form": request.form["id_form"],
+                "id_commessa": request.form["id_commessa"],
+                "id_offerta": request.form["id_offerta"]
+                }
+            insert_edit_commessa(tmp_dati)
+            flash("Commessa eliminata con successo!", "success")
     if pagina == "riepilogo":
         return render_template("commesse.html", pagina=pagina, gestione=gestisce(), dati=dati_mcp("commesse_complete"), clienti=get_clienti(), utenti=User.query.all(), tipi_lavorazione=get_tipo_lavorazione(), menu_page="commesse")
     # else
@@ -655,7 +663,7 @@ def commesse(pagina):
         "offerta": {"id": tmp_id_offerta,"numero": tmp_numero},
         "qualita": get_grafico_commessa(tmp_specifiche)
         }
-    return render_template("dettaglio_commessa.html", commessa=tmp_commessa, gestione=gestisce(), clienti=get_clienti(), utenti=User.query.all(), tipi_lavorazione=get_tipo_lavorazione(), menu_page="commesse")
+    return render_template("dettaglio_commessa.html", commessa=tmp_commessa, offerte=reversed(dati_mcp("offerte")), gestione=gestisce(), clienti=get_clienti(), utenti=User.query.all(), tipi_lavorazione=get_tipo_lavorazione(), menu_page="commesse")
 
 @app.route("/offerte", methods=("GET", "POST"))
 @login_required
@@ -1010,6 +1018,7 @@ def dettaglio_storico(id_commessa):
 @login_required
 def dettaglio_offerta(id_offerta):
     if not gestisce():
+        flash("Privilegi insufficienti.", "warning")
         return redirect(url_for("dashboard"))
     if request.method == "POST":
         if request.form["id_form"] == "inserisci_file":
