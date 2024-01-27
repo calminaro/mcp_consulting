@@ -360,23 +360,24 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="collegaOffertaModalLabel">Inserisci</h1>
+        <h1 class="modal-title fs-5" id="collegaOffertaModalLabel">Collega Offerta</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        <p><strong>ATTENZIONE:</strong> Operazione irreversibile.</p>
         <form method="post">
           <input type="hidden" id="id_form" name="id_form" value="collega_offerta">
           <input type="hidden" id="id_commessa" name="id_commessa" value="">
           <div class="mb-3">
-            <label for="message-text" class="col-form-label">Seleziona Offerta</label>
-            <select class="form-select" aria-label="Tipologia" id="tipo" name="tipo">
+            <label for="message-text" class="col-form-label"><strong>Seleziona Offerta</strong></label>
+            <select class="form-select" aria-label="Tipologia" id="id_offerta" name="id_offerta">
               {% for i in offerte %}
                 <option value="{{ i["id"] }}">{{ i["numero"] }}</option>
               {% endfor %}
             </select>
           </div>
 
-          <button type="submit" class="btn btn-warning btn-sm">Conferma</button>
+          <button type="submit" class="btn btn-warning btn-sm">Collega</button>
         </form>
       </div>
     </div>

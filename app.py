@@ -274,6 +274,8 @@ def insert_edit_commessa(dati):
             "fine": dati["data"]
             }
         cur.execute("UPDATE commesse SET durata = ? WHERE id = ?", [json.dumps(durata), dati["id_commessa"]])
+    elif dati["form"] == "collega_offerta":
+        cur.execute("UPDATE commesse SET offerta = ? WHERE id = ?", [dati["id_offerta"], dati["id_commessa"]])
     mcpDB.commit()
     mcpDB.close()
 
@@ -604,7 +606,7 @@ def commesse(pagina):
                 "id_offerta": request.form["id_offerta"]
                 }
             insert_edit_commessa(tmp_dati)
-            flash("Commessa eliminata con successo!", "success")
+            flash("Offerta collegata!", "success")
     if pagina == "riepilogo":
         return render_template("commesse.html", pagina=pagina, gestione=gestisce(), dati=dati_mcp("commesse_complete"), clienti=get_clienti(), utenti=User.query.all(), tipi_lavorazione=get_tipo_lavorazione(), menu_page="commesse")
     # else
