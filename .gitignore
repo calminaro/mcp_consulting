@@ -2,3 +2,4 @@
 *.db
 __pycache__
 update_db.py
+*_compilato.xlsx
