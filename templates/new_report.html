@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block corpo %}
+
+<h2 class="text-center"><strong>REPORT</strong></h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="my-2 alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+
+<!-- Button trigger modal -->
+<button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#personaleModal">
+  <div class="card" style="width: 18rem;">
+    <div class="card-body">
+      <h5 class="card-title">Report Personale</h5>
+    </div>
+  </div>
+</button>
+<button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#commesseModal">
+  <div class="card" style="width: 18rem;">
+    <div class="card-body">
+      <h5 class="card-title">Report Commesse</h5>
+    </div>
+  </div>
+</button>
+<button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#collaboratoriModal">
+  <div class="card" style="width: 18rem;">
+    <div class="card-body">
+      <h5 class="card-title">Report Collaboratori</h5>
+    </div>
+  </div>
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="personaleModal" tabindex="-1" aria-labelledby="personaleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="personaleModalLabel">Report Personale</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info" role="alert">
+          Puoi generare anche un solo giorno inserendo solo la data inizio!
+        </div>
+        <form method="post">
+        <input type="hidden" id="id_form" name="id_form" value="report_personale">
+          <div class="mb-3">
+            <label for="data_inizio" class="form-label">Data Inizio</label>
+            <input type="date" class="form-control" id="data_inizio" name="data_inizio">
+          </div>
+          <div class="mb-3">
+            <label for="data_fine" class="form-label">Data Fine</label>
+            <input type="date" class="form-control" id="data_fine" name="data_fine">
+          </div>
+          <button type="submit" class="btn btn-warning">Scarica</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="commesseModal" tabindex="-1" aria-labelledby="commesseModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="commesseModalLabel">Report Commesse</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info" role="alert">
+          Entrambe le date sono comprese!
+        </div>
+        <form method="post">
+        <input type="hidden" id="id_form" name="id_form" value="report_commesse">
+          <div class="mb-3">
+            <label for="data_inizio" class="form-label">Data Inizio</label>
+            <input type="date" class="form-control" id="data_inizio" name="data_inizio">
+          </div>
+          <div class="mb-3">
+            <label for="data_fine" class="form-label">Data Fine</label>
+            <input type="date" class="form-control" id="data_fine" name="data_fine">
+          </div>
+          <button type="submit" class="btn btn-warning">Scarica</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="collaboratoriModal" tabindex="-1" aria-labelledby="collaboratoriModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="collaboratoriModalLabel">Report Collaboratori</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post">
+          <input type="hidden" id="id_form" name="id_form" value="report_collaboratori">
+          <div class="mb-3">
+              <label class="form-label">Collaboratori</label>
+              {% for i in utenti %}
+              <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="user_{{ i.id }}" name="user_{{ i.id }}" id="user_{{ i.id }}" checked>
+              <label class="form-check-label" for="user_{{ i.id }}">
+                  {{ i.username }} - {{ i.anagrafica["nome"] }} {{ i.anagrafica["cognome"] }}
+              </label>
+              </div>
+              {% endfor %}
+          </div>
+          <div class="mb-3">
+            <label for="data_inizio" class="form-label">Data Inizio</label>
+            <input type="date" class="form-control" id="data_inizio" name="data_inizio">
+          </div>
+          <div class="mb-3">
+            <label for="data_fine" class="form-label">Data Fine</label>
+            <input type="date" class="form-control" id="data_fine" name="data_fine">
+          </div>
+          <button type="submit" class="btn btn-warning">Scarica</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

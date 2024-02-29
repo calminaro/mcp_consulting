@@ -1270,6 +1270,27 @@ def report():
             return redirect(url_for("report_periodo", tipo=request.form["tipo"], anno=request.form["anno"], mese="0", settimana="0"))
     return render_template("report.html", anni=anni, gestione=gestisce(), utenti=User.query.all(), menu_page="report")
 
+@app.route("/new_report", methods=("GET", "POST"))
+@login_required
+def new_report():
+    if not gestisce():
+        return redirect(url_for("dashboard"))
+    utenti=User.query.all()
+    if request.method == "POST":
+        if request.form["id_form"] == "report_personale":
+            print(f"{request.form['data_inizio']} - {request.form['data_fine']}")
+        if request.form["id_form"] == "report_commesse":
+            print(f"{request.form['data_inizio']} - {request.form['data_fine']}")
+        if request.form["id_form"] == "report_collaboratori":
+            tmp_collaboratori = []
+            for i in utenti:
+                try:
+                    tmp_collaboratori.append(request.form[f'user_{ i.id }'])
+                except:
+                    pass
+            print(f"{request.form['data_inizio']} - {request.form['data_fine']} - {tmp_collaboratori}")
+    return render_template("new_report.html", gestione=gestisce(), utenti=utenti, menu_page="report")
+
 @app.route("/report/<string:tipo>/<string:anno>/<string:mese>/<string:settimana>")
 @login_required
 def report_periodo(tipo, anno, mese, settimana):

@@ -150,6 +150,7 @@
                 <span class="material-symbols-outlined">subdirectory_arrow_right</span>Nuova Commessa
               </a>
             </li>
+          {% endif %}
 <!--
           <li class="nav-item">
             {% if menu_page == "qualità" %}
@@ -174,6 +175,7 @@
             </a>
           </li>
 -->
+          {% if gestione %}
           <li class="nav-item">
             {% if menu_page == "database" %}
             <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{{ url_for("collaboratori") }}">
@@ -190,6 +192,15 @@
             <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for("report") }}">
             {% endif %}
               Report
+            </a>
+          </li>
+          <li class="nav-item">
+            {% if menu_page == "report" %}
+            <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{{ url_for("new_report") }}">
+            {% else %}
+            <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for("new_report") }}">
+            {% endif %}
+              Nuovo Report
             </a>
           </li>
           {% endif %}
