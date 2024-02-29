@@ -1455,6 +1455,9 @@ def new_report():
                 if datetime.date.fromisoformat(tmp_lavorazione["durata"]["data"]) in tmp_date and tmp_lavorazione["collaboratore"]["id"] in tmp_collaboratori:
                     tmp_lavorazioni_interne.append(tmp_lavorazione)
 
+            for i in tmp_collaboratori:
+                pass
+
             mcpDB.close()
             print(f"{request.form['data_inizio']} - {request.form['data_fine']} - {tmp_collaboratori}")
     return render_template("new_report.html", gestione=gestisce(), utenti=utenti, menu_page="report")
