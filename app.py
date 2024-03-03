@@ -1460,7 +1460,7 @@ def new_report():
 
             mcpDB.close()
             print(f"{request.form['data_inizio']} - {request.form['data_fine']} - {tmp_collaboratori}")
-    return render_template("new_report.html", gestione=gestisce(), utenti=utenti, menu_page="report")
+    return render_template("new_report.html", gestione=gestisce(), utenti=utenti, menu_page="new_report")
 
 @app.route("/report/<string:tipo>/<string:anno>/<string:mese>/<string:settimana>")
 @login_required

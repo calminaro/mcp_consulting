@@ -194,8 +194,9 @@
               Report
             </a>
           </li>
+          {% endif %}
           <li class="nav-item">
-            {% if menu_page == "report" %}
+            {% if menu_page == "new_report" %}
             <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="{{ url_for("new_report") }}">
             {% else %}
             <a class="nav-link d-flex align-items-center gap-2" href="{{ url_for("new_report") }}">
@@ -203,7 +204,6 @@
               Nuovo Report
             </a>
           </li>
-          {% endif %}
 
           <hr>
 
