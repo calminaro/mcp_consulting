@@ -1283,6 +1283,7 @@ def new_report():
             except ValueError:
                 flash("Non hai inserito una data d'inizio!", "warning")
                 return redirect(url_for("new_report"))
+            singolo_giorno = False
             try:
                 data2 = datetime.date.fromisoformat(request.form["data_fine"])
             except:
@@ -1393,6 +1394,7 @@ def new_report():
             except ValueError:
                 flash("Non hai inserito una data d'inizio!", "warning")
                 return redirect(url_for("new_report"))
+            singolo_giorno = False
             try:
                 data2 = datetime.date.fromisoformat(request.form["data_fine"])
             except:
@@ -1404,16 +1406,20 @@ def new_report():
             except ValueError:
                 flash("Non hai inserito una data d'inizio!", "warning")
                 return redirect(url_for("new_report"))
+            singolo_giorno = False
             try:
                 data2 = datetime.date.fromisoformat(request.form["data_fine"])
             except:
                 singolo_giorno = True
             tmp_collaboratori = []
+            tmp_collaboratori_id = []
             for i in utenti:
                 try:
-                    tmp_collaboratori.append(int(request.form[f'user_{ i.id }'].removeprefix("user_")))
+                    tmp_collaboratori.append({"id": int(request.form[f'user_{ i.id }'].removeprefix("user_")), "esterne": [], "interne": []})
+                    tmp_collaboratori_id.append(int(request.form[f'user_{ i.id }'].removeprefix("user_")))
                 except:
                     pass
+            print(tmp_collaboratori)
             delta = datetime.timedelta(days=1)
             mcpDB = sqlite3.connect(mcpDB_path)
             cur = mcpDB.cursor()
@@ -1421,8 +1427,6 @@ def new_report():
             lavorazioni = cur.fetchall()
             cur.execute("select * from ore_interne")
             lavorazioni_interne = cur.fetchall()
-            tmp_lavorazioni = []
-            tmp_lavorazioni_interne = []
             tmp_date = []
             tmp_continua = True
             if singolo_giorno:
@@ -1442,8 +1446,10 @@ def new_report():
                     "durata": json.loads(lavorazione[4]),
                     "tipologia": "lavorazione",
                     }
-                if datetime.date.fromisoformat(tmp_lavorazione["durata"]["data"]) in tmp_date and tmp_lavorazione["collaboratore"]["id"] in tmp_collaboratori:
-                    tmp_lavorazioni.append(tmp_lavorazione)
+                if datetime.date.fromisoformat(tmp_lavorazione["durata"]["data"]) in tmp_date and tmp_lavorazione["collaboratore"]["id"] in tmp_collaboratori_id:
+                    for y in tmp_collaboratori:
+                        if y["id"] == int(tmp_lavorazione["collaboratore"]["id"]):
+                            y["esterne"].append(tmp_lavorazione)
             for lavorazione in lavorazioni_interne:
                 tmp_lavorazione = {
                     "id": lavorazione[0],
@@ -1452,11 +1458,76 @@ def new_report():
                     "durata": json.loads(lavorazione[3]),
                     "tipologia": "interne",
                     }
-                if datetime.date.fromisoformat(tmp_lavorazione["durata"]["data"]) in tmp_date and tmp_lavorazione["collaboratore"]["id"] in tmp_collaboratori:
-                    tmp_lavorazioni_interne.append(tmp_lavorazione)
+                if datetime.date.fromisoformat(tmp_lavorazione["durata"]["data"]) in tmp_date and tmp_lavorazione["collaboratore"]["id"] in tmp_collaboratori_id:
+                    for y in tmp_collaboratori:
+                        if y["id"] == int(tmp_lavorazione["collaboratore"]["id"]):
+                            y["interne"].append(tmp_lavorazione)
 
-            for i in tmp_collaboratori:
-                pass
+            workbook = load_workbook(filename = static_path+'report_collaboratori.xlsx')
+
+            for tmp_collaboratore in tmp_collaboratori:
+                workbook.copy_worksheet(workbook['base']).title = get_nome("collaboratore", tmp_collaboratore["id"])
+                foglio = workbook[get_nome("collaboratore", tmp_collaboratore["id"])]
+                tmp_riga = 2
+                for i in tmp_collaboratore["esterne"]:
+                    cur.execute("select * from commesse where id = ?", [i["commessa"]])
+                    commesse = cur.fetchall()
+                    commessa = commesse[0]
+                    tmp_specifiche = {
+                            "budget_ore": json.loads(commessa[4])["budget_ore"],
+                            "budget_euro": json.loads(commessa[4])["budget_euro"],
+                            "project_manager": {"id": json.loads(commessa[4])["project_manager"],"nome": get_nome("collaboratore", json.loads(commessa[4])["project_manager"])},
+                            "tipologia": get_tipo_commessa(json.loads(commessa[4])["tipologia"])
+                            }
+                    tmp_commessa = {
+                        "id": commessa[0],
+                        "numero": get_numero_commessa(commessa[1]),
+                        "nome": commessa[2],
+                        "cliente": {"id": commessa[3],"nome": get_nome("cliente", commessa[3])},
+                        "specifiche": tmp_specifiche,
+                        "durata": json.loads(commessa[5]),
+                        "note": commessa[6]
+                        }
+                    foglio.cell(row=tmp_riga, column=1).value = i["durata"]["data"][8:10]+"/"+i["durata"]["data"][5:7]+"/"+i["durata"]["data"][0:4]
+                    foglio.cell(row=tmp_riga, column=2).value = tmp_commessa["numero"]
+                    foglio.cell(row=tmp_riga, column=3).value = tmp_commessa["nome"]
+                    foglio.cell(row=tmp_riga, column=4).value = i["tipo"]["nome"]
+                    foglio.cell(row=tmp_riga, column=5).value = float(i["durata"]["ore"])
+                    if i["durata"]["trasferta"]:
+                        foglio.cell(row=tmp_riga, column=6).value = "Si"
+                    else:
+                        foglio.cell(row=tmp_riga, column=6).value = "No"
+                    tmp_riga += 1
+
+                for i in tmp_collaboratore["interne"]:
+                    cur.execute("select * from interne where id = ?", [i["commessa"]])
+                    commesse = cur.fetchall()
+                    commessa = commesse[0]
+                    tmp_commessa = {
+                        "id": commessa[0],
+                        "numero": get_numero_commessa(commessa[1]),
+                        "nome": commessa[2],
+                        "durata": json.loads(commessa[3]),
+                        "note": commessa[4]
+                        }
+                    foglio.cell(row=tmp_riga, column=1).value = i["durata"]["data"][8:10]+"/"+i["durata"]["data"][5:7]+"/"+i["durata"]["data"][0:4]
+                    foglio.cell(row=tmp_riga, column=2).value = tmp_commessa["numero"]
+                    foglio.cell(row=tmp_riga, column=3).value = tmp_commessa["nome"]
+                    foglio.cell(row=tmp_riga, column=5).value = float(i["durata"]["ore"])
+                    if i["durata"]["trasferta"]:
+                        foglio.cell(row=tmp_riga, column=6).value = "Si"
+                    else:
+                        foglio.cell(row=tmp_riga, column=6).value = "No"
+                    tmp_riga += 1
+
+            mcpDB.close()
+            try:
+                workbook.remove(workbook['base'])
+                workbook.save(filename=static_path+"report_collaboratori_compilato.xlsx")
+            except:
+                flash("Non ci sono commesse nel periodo selezionato!", "warning")
+                return redirect(url_for("new_report"))
+            return send_file(static_path+"report_collaboratori_compilato.xlsx", as_attachment=True, download_name="report_collaboratori.xlsx")
 
             mcpDB.close()
             print(f"{request.form['data_inizio']} - {request.form['data_fine']} - {tmp_collaboratori}")
