@@ -1399,7 +1399,61 @@ def new_report():
                 data2 = datetime.date.fromisoformat(request.form["data_fine"])
             except:
                 singolo_giorno = True
-            print(f"{request.form['data_inizio']} - {request.form['data_fine']}")
+            delta = datetime.timedelta(days=1)
+            tmp_date = []
+            tmp_continua = True
+            if singolo_giorno:
+                tmp_date.append(data1)
+            else:
+                while tmp_continua:
+                    tmp_date.append(data1)
+                    data1 = data1+delta
+                    if data1>data2:
+                        tmp_continua = False
+            dati = dati_mcp("commesse_complete")
+            workbook = load_workbook(filename = static_path+'report_commesse.xlsx')
+            for i in dati:
+                tmp_comm = False
+                for j in i["lavorazioni"]:
+                    if datetime.date.fromisoformat(j["durata"]["data"]) in tmp_date:
+                        tmp_comm = True
+                        continue
+                if not tmp_comm:
+                    continue
+                workbook.copy_worksheet(workbook['base']).title = i["numero"]
+                foglio = workbook[i["numero"]]
+                foglio["B1"] = i["numero"]
+                foglio["B2"] = i["nome"]
+                foglio["B3"] = i["cliente"]["nome"]
+                foglio["B4"] = i["durata"]["inizio"][8:10]+"/"+i["durata"]["inizio"][5:7]+"/"+i["durata"]["inizio"][0:4]
+                if i["durata"]["fine"]:
+                    foglio["B5"] = i["durata"]["fine"][8:10]+"/"+i["durata"]["fine"][5:7]+"/"+i["durata"]["fine"][0:4]
+                foglio["B6"] = i["specifiche"]["project_manager"]["nome"]
+                foglio["B7"] = i["specifiche"]["budget_ore"]
+                foglio["B8"] = i["specifiche"]["budget_euro"]
+
+                tmp_riga = 12
+                for j in i["lavorazioni"]:
+                    foglio.cell(row=tmp_riga, column=1).value = j["durata"]["data"][8:10]+"/"+j["durata"]["data"][5:7]+"/"+j["durata"]["data"][0:4]
+                    foglio.cell(row=tmp_riga, column=2).value = j["collaboratore"]["nome"]
+                    foglio.cell(row=tmp_riga, column=3).value = float(j["durata"]["ore"])
+                    if j["durata"]["trasferta"]:
+                        foglio.cell(row=tmp_riga, column=4).value = "Si"
+                    else:
+                        foglio.cell(row=tmp_riga, column=4).value = "No"
+                    foglio.cell(row=tmp_riga, column=5).value = j["tipo"]["nome"]
+                    foglio.cell(row=tmp_riga, column=6).value = j["costo"]
+                    tmp_riga += 1
+            try:
+                workbook.remove(workbook['base'])
+                workbook.save(filename=static_path+"report_commesse_compilato.xlsx")
+            except:
+                flash("Non ci sono commesse nel periodo selezionato!", "warning")
+                return redirect(url_for("report"))
+
+            return send_file(static_path+"report_commesse_compilato.xlsx", as_attachment=True, download_name="report_commesse.xlsx")
+
+
         if request.form["id_form"] == "report_collaboratori":
             try:
                 data1 = datetime.date.fromisoformat(request.form["data_inizio"])
@@ -1419,7 +1473,6 @@ def new_report():
                     tmp_collaboratori_id.append(int(request.form[f'user_{ i.id }'].removeprefix("user_")))
                 except:
                     pass
-            print(tmp_collaboratori)
             delta = datetime.timedelta(days=1)
             mcpDB = sqlite3.connect(mcpDB_path)
             cur = mcpDB.cursor()
@@ -1530,7 +1583,6 @@ def new_report():
             return send_file(static_path+"report_collaboratori_compilato.xlsx", as_attachment=True, download_name="report_collaboratori.xlsx")
 
             mcpDB.close()
-            print(f"{request.form['data_inizio']} - {request.form['data_fine']} - {tmp_collaboratori}")
     return render_template("new_report.html", gestione=gestisce(), utenti=utenti, menu_page="new_report")
 
 @app.route("/report/<string:tipo>/<string:anno>/<string:mese>/<string:settimana>")
