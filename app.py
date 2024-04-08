@@ -12,6 +12,7 @@ import sqlite3
 import random
 import string
 import json
+import io
 
 with open("credenziali.json", "r") as f:
     cr = json.load(f)
@@ -1385,8 +1386,10 @@ def new_report():
                 tmp_riga += 1
 
             mcpDB.close()
-            workbook.save(filename=static_path+"report_collaboratore_compilato.xlsx")
-            return send_file(static_path+"report_collaboratore_compilato.xlsx", as_attachment=True, download_name="report_collaboratore.xlsx")
+            out = io.BytesIO()
+            workbook.save(out)
+            out.seek(0)
+            return send_file(out, as_attachment=True, download_name="report_collaboratore.xlsx")
 
         if request.form["id_form"] == "report_commesse":
             try:
@@ -1446,12 +1449,14 @@ def new_report():
                     tmp_riga += 1
             try:
                 workbook.remove(workbook['base'])
-                workbook.save(filename=static_path+"report_commesse_compilato.xlsx")
+                out = io.BytesIO()
+                workbook.save(out)
+                out.seek(0)
             except:
                 flash("Non ci sono commesse nel periodo selezionato!", "warning")
                 return redirect(url_for("report"))
 
-            return send_file(static_path+"report_commesse_compilato.xlsx", as_attachment=True, download_name="report_commesse.xlsx")
+            return send_file(out, as_attachment=True, download_name="report_commesse.xlsx")
 
 
         if request.form["id_form"] == "report_collaboratori":
@@ -1576,11 +1581,13 @@ def new_report():
             mcpDB.close()
             try:
                 workbook.remove(workbook['base'])
-                workbook.save(filename=static_path+"report_collaboratori_compilato.xlsx")
+                out = io.BytesIO()
+                workbook.save(out)
+                out.seek(0)
             except:
                 flash("Non ci sono commesse nel periodo selezionato!", "warning")
                 return redirect(url_for("new_report"))
-            return send_file(static_path+"report_collaboratori_compilato.xlsx", as_attachment=True, download_name="report_collaboratori.xlsx")
+            return send_file(out, as_attachment=True, download_name="report_collaboratori.xlsx")
 
             mcpDB.close()
     return render_template("new_report.html", gestione=gestisce(), utenti=utenti, menu_page="new_report")
